@@ -32,14 +32,35 @@ class CashierAuthRepositoryImpl implements CashierAuthRepository {
       cityId = profile.userRoles.first.cityId;
     }
 
+    var locationLabel = '';
+    if (profile.userRoles.isNotEmpty) {
+      final role = profile.userRoles.first;
+      final cn = role.cityName;
+      final sl = role.stateLabel;
+      if (cn.isNotEmpty && sl.isNotEmpty) {
+        locationLabel = '$cn, $sl';
+      } else if (cn.isNotEmpty) {
+        locationLabel = cn;
+      }
+    }
+
+    // `profile.full_name` / `fullName` from login `data.profile`
+    final rawFullName = profile.fullName.trim();
+    final displayName =
+        rawFullName.isNotEmpty ? rawFullName : profile.username.trim();
+
     return CashierAuthEntity(
       accessToken: response.data.accessToken,
       refreshToken: response.data.refreshToken,
-      userId: response.data.profile.userId,
-      username: response.data.profile.username,
-      role: response.data.profile.userRoles.first.name,
+      userId: profile.userId,
+      username: profile.username,
+      role: profile.userRoles.first.name,
       storeId: storeId,
       cityId: cityId,
+      fullName: displayName,
+      email: profile.email.trim(),
+      phone: profile.phone.trim(),
+      locationLabel: locationLabel,
     );
   }
 }

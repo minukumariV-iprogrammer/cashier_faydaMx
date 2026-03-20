@@ -6,6 +6,7 @@ import '../../../../../core/network/season_holder.dart';
 import '../../../../../core/network/tenant_holder.dart';
 import '../../../../../core/network/token_holder.dart';
 import '../../../../../core/network/token_service.dart';
+import '../../../../../core/models/cashier_profile_snapshot.dart';
 import '../../../domain/usecases/cashier_login_usecase.dart';
 import '../../../domain/usecases/fetch_active_season_usecase.dart';
 import '../enums/cashier_login_status.dart';
@@ -112,6 +113,17 @@ class CashierLoginBloc
       tenantHolder.setTenantId(authEntity.cityId);
       sl<TokenHolder>().setToken(authEntity.accessToken);
       credentialsPersisted = true;
+
+      // Persist profile from login `data.profile` before secondary APIs.
+      await tokenService.setCashierProfileSnapshot(
+        CashierProfileSnapshot(
+          fullName: authEntity.fullName,
+          email: authEntity.email,
+          phone: authEntity.phone,
+          username: authEntity.username,
+          locationLabel: authEntity.locationLabel,
+        ),
+      );
 
       final seasonId = await fetchActiveSeasonUseCase(
         storeId: authEntity.storeId,

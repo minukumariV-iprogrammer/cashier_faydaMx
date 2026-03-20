@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../models/cashier_profile_snapshot.dart';
 
 /// Stores and retrieves cashier access/refresh tokens, store, city (tenant), season.
 abstract class TokenService {
@@ -15,6 +19,8 @@ abstract class TokenService {
   Future<String?> getTenantId();
   Future<void> setSeasonId(String seasonId);
   Future<String?> getSeasonId();
+  Future<void> setCashierProfileSnapshot(CashierProfileSnapshot snapshot);
+  Future<CashierProfileSnapshot?> getCashierProfileSnapshot();
   Future<void> clearTokens();
 }
 
@@ -23,6 +29,7 @@ const String _keyRefreshToken = 'cashier_refresh_token';
 const String _keyStoreId = 'cashier_store_id';
 const String _keyTenantId = 'cashier_tenant_id';
 const String _keySeasonId = 'cashier_season_id';
+const String _keyProfileSnapshot = 'cashier_profile_snapshot';
 
 class TokenServiceImpl implements TokenService {
   TokenServiceImpl(this._storage);
@@ -69,11 +76,33 @@ class TokenServiceImpl implements TokenService {
   Future<String?> getSeasonId() => _storage.read(key: _keySeasonId);
 
   @override
+  Future<void> setCashierProfileSnapshot(CashierProfileSnapshot snapshot) async {
+    await _storage.write(
+      key: _keyProfileSnapshot,
+      value: jsonEncode(snapshot.toJson()),
+    );
+  }
+
+  @override
+  Future<CashierProfileSnapshot?> getCashierProfileSnapshot() async {
+    final raw = await _storage.read(key: _keyProfileSnapshot);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return CashierProfileSnapshot.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
   Future<void> clearTokens() async {
     await _storage.delete(key: _keyAccessToken);
     await _storage.delete(key: _keyRefreshToken);
     await _storage.delete(key: _keyStoreId);
     await _storage.delete(key: _keyTenantId);
     await _storage.delete(key: _keySeasonId);
+    await _storage.delete(key: _keyProfileSnapshot);
   }
 }

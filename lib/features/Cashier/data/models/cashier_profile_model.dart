@@ -6,6 +6,7 @@ class CashierProfileModel {
   final String phone;
   final String username;
   final String email;
+  final String fullName;
   final List<CashierUserRoleModel> userRoles;
   final List<CashierStoreModel> storeList;
 
@@ -14,6 +15,7 @@ class CashierProfileModel {
     required this.phone,
     required this.username,
     required this.email,
+    required this.fullName,
     required this.userRoles,
     required this.storeList,
   });
@@ -22,10 +24,13 @@ class CashierProfileModel {
     final roles = json['user_roles'] ?? json['userRoles'];
     final stores = json['storeList'] ?? json['store_list'];
     return CashierProfileModel(
-      userId: json['userId'] as String,
-      phone: json['phone'] as String,
-      username: json['username'] as String,
-      email: json['email'] as String,
+      userId: json['userId']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      username: json['username']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      fullName: json['full_name']?.toString() ??
+          json['fullName']?.toString() ??
+          '',
       userRoles: (roles as List)
           .map((e) => CashierUserRoleModel.fromJson(e as Map<String, dynamic>))
           .toList(),

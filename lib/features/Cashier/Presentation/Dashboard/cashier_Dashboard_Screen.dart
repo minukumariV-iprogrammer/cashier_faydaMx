@@ -14,6 +14,7 @@ import 'Bloc/cashier_dashboard_event.dart';
 import 'Bloc/cashier_dashboard_state.dart';
 import 'Bloc/cashier_dashboard_status.dart';
 import 'widgets/cashier_dashboard_shimmer.dart';
+import 'widgets/cashier_profile_drawer.dart';
 
 class cashierDashBoardScreen extends StatefulWidget {
   const cashierDashBoardScreen({super.key});
@@ -23,7 +24,17 @@ class cashierDashBoardScreen extends StatefulWidget {
 }
 
 class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
-  Future<void> _onUserIconTap() async {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void _onUserIconTap() {
+    _scaffoldKey.currentState?.openEndDrawer();
+  }
+
+  Future<void> _onLogoutFromDrawer() async {
+    _scaffoldKey.currentState?.closeEndDrawer();
+    await Future<void>.delayed(const Duration(milliseconds: 280));
+    if (!mounted) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -69,31 +80,40 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
         final showInitialLoader = loading && summary == null;
 
         return Scaffold(
+          key: _scaffoldKey,
+          endDrawer: CashierProfileDrawer(
+            onClose: () => _scaffoldKey.currentState?.closeEndDrawer(),
+            onLogoutPressed: _onLogoutFromDrawer,
+          ),
           backgroundColor: Colors.white,
           appBar: AppBar(
             elevation: 0,
             backgroundColor: Colors.white,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.black,
-                  child: Text(
-                    '₹',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                GestureDetector(
+            automaticallyImplyLeading: false,
+            centerTitle: false,
+            titleSpacing: 16,
+            title: const CircleAvatar(
+              radius: 16,
+              backgroundColor: Colors.black,
+              child: Text(
+                '₹',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: GestureDetector(
                   onTap: _onUserIconTap,
+                  behavior: HitTestBehavior.opaque,
                   child: CircleAvatar(
                     radius: 18,
                     backgroundColor: Colors.grey.shade200,
                     child: const Icon(Icons.person, color: Colors.black),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           body: Padding(
             padding: const EdgeInsets.all(16),

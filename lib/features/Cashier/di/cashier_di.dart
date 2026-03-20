@@ -19,6 +19,7 @@ import '../domain/repositories/cashier_dashboard_repository.dart';
 import '../domain/repositories/cashier_season_repository.dart';
 import '../domain/usecases/cashier_login_usecase.dart';
 import '../domain/usecases/fetch_active_season_usecase.dart';
+import '../domain/usecases/get_store_detail_usecase.dart';
 import '../domain/usecases/get_store_summary_usecase.dart';
 
 void initCashierDi(GetIt sl) {
@@ -59,6 +60,9 @@ void initCashierDi(GetIt sl) {
   sl.registerLazySingleton<GetStoreSummaryUseCase>(
     () => GetStoreSummaryUseCase(sl<CashierDashboardRepository>()),
   );
+  sl.registerLazySingleton<GetStoreDetailUseCase>(
+    () => GetStoreDetailUseCase(sl<CashierDashboardRepository>()),
+  );
   sl.registerLazySingleton<FetchActiveSeasonUseCase>(
     () => FetchActiveSeasonUseCase(sl<CashierSeasonRepository>()),
   );
@@ -76,6 +80,7 @@ void initCashierDi(GetIt sl) {
   sl.registerFactory<CashierDashboardBloc>(
     () => CashierDashboardBloc(
       getStoreSummaryUseCase: sl<GetStoreSummaryUseCase>(),
+      getStoreDetailUseCase: sl<GetStoreDetailUseCase>(),
       tokenService: sl<TokenService>(),
     ),
   );

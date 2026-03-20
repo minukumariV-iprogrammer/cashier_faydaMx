@@ -2,6 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/network/errors/exceptions.dart';
 import '../../../../../core/network/token_service.dart';
+import '../../../domain/entities/store_detail_entity.dart';
+import '../../../domain/entities/store_summary_entity.dart';
+import '../../../domain/usecases/get_store_detail_usecase.dart';
 import '../../../domain/usecases/get_store_summary_usecase.dart';
 import 'cashier_dashboard_event.dart';
 import 'cashier_dashboard_state.dart';
@@ -11,14 +14,17 @@ class CashierDashboardBloc
     extends Bloc<CashierDashboardEvent, CashierDashboardState> {
   CashierDashboardBloc({
     required GetStoreSummaryUseCase getStoreSummaryUseCase,
+    required GetStoreDetailUseCase getStoreDetailUseCase,
     required TokenService tokenService,
   })  : _getStoreSummaryUseCase = getStoreSummaryUseCase,
+        _getStoreDetailUseCase = getStoreDetailUseCase,
         _tokenService = tokenService,
         super(const CashierDashboardState()) {
     on<CashierDashboardLoadRequested>(_onLoadRequested);
   }
 
   final GetStoreSummaryUseCase _getStoreSummaryUseCase;
+  final GetStoreDetailUseCase _getStoreDetailUseCase;
   final TokenService _tokenService;
 
   Future<void> _onLoadRequested(
@@ -40,11 +46,14 @@ class CashierDashboardBloc
     }
 
     try {
-      final summary =
-          await _getStoreSummaryUseCase(storeId: storeId);
+      final results = await Future.wait([
+        _getStoreSummaryUseCase(storeId: storeId),
+        _getStoreDetailUseCase(storeId: storeId),
+      ]);
       emit(state.copyWith(
         status: CashierDashboardStatus.success,
-        summary: summary,
+        summary: results[0] as StoreSummaryEntity,
+        storeDetail: results[1] as StoreDetailEntity,
       ));
     } on InputValidationException catch (e) {
       emit(state.copyWith(

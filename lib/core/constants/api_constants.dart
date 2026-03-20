@@ -16,6 +16,9 @@ class ApiConstants {
   static const String dashboard = '/dashboard';
   static const String createFaydaBill = '/faydabill/create';
 
+  /// GET `/api/store/{storeId}` — store profile (logo, name, status, …).
+  static String storeById(String storeId) => '/api/store/$storeId';
+
   /// GET `/api/store/{storeId}/summary` — cashier dashboard metrics.
   static String storeSummary(String storeId) => '/api/store/$storeId/summary';
 

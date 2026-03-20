@@ -14,7 +14,9 @@ import 'Bloc/cashier_dashboard_event.dart';
 import 'Bloc/cashier_dashboard_state.dart';
 import 'Bloc/cashier_dashboard_status.dart';
 import 'widgets/cashier_dashboard_shimmer.dart';
+import 'widgets/cashier_profile_app_bar_button.dart';
 import 'widgets/cashier_profile_drawer.dart';
+import 'widgets/cashier_store_header_pill.dart';
 
 class cashierDashBoardScreen extends StatefulWidget {
   const cashierDashBoardScreen({super.key});
@@ -64,6 +66,47 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
     context.go(AppRoutes.cashierLoginScreen);
   }
 
+  Widget _buildStoreHeaderTitle(CashierDashboardState state) {
+    final loading = state.status == CashierDashboardStatus.loading;
+    final store = state.storeDetail;
+
+    if (loading && store == null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Icon(Icons.swap_vert, size: 22, color: Colors.grey.shade600),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (store != null) {
+      return CashierStoreHeaderPill(store: store);
+    }
+
+    return const SizedBox.shrink();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<CashierDashboardBloc, CashierDashboardState>(
@@ -92,26 +135,11 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
             automaticallyImplyLeading: false,
             centerTitle: false,
             titleSpacing: 16,
-            title: const CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.black,
-              child: Text(
-                '₹',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
+            title: _buildStoreHeaderTitle(state),
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 16),
-                child: GestureDetector(
-                  onTap: _onUserIconTap,
-                  behavior: HitTestBehavior.opaque,
-                  child: CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Colors.grey.shade200,
-                    child: const Icon(Icons.person, color: Colors.black),
-                  ),
-                ),
+                child: CashierProfileAppBarButton(onTap: _onUserIconTap),
               ),
             ],
           ),
@@ -211,7 +239,7 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
 
                 },
                 child: const Text(
-                  'Create Payday Bill  >',
+                  'Create Fayda Bill  >',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

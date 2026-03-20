@@ -4,6 +4,7 @@ import '../../../../core/constants/api_constants.dart';
 import '../models/cashier_login_request_model.dart';
 import '../models/cashier_login_response_model.dart';
 import '../models/eligible_seasons_api_response_model.dart';
+import '../models/store_detail_api_response_model.dart';
 import '../models/store_summary_api_response_model.dart';
 
 /// Contract for cashier API. Implemented by [CashierApiServiceImpl].
@@ -11,6 +12,8 @@ abstract class ApiService {
   Future<CashierLoginResponseModel> cashierLogin(CashierLoginRequestModel request);
 
   Future<EligibleSeasonsApiResponseModel> getEligibleSeasons(String storeId);
+
+  Future<StoreDetailApiResponseModel> getStoreById(String storeId);
 
   Future<StoreSummaryApiResponseModel> getStoreSummary(String storeId);
 }
@@ -50,6 +53,17 @@ class CashierApiServiceImpl implements ApiService {
       throw FormatException('Empty response from $path');
     }
     return EligibleSeasonsApiResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<StoreDetailApiResponseModel> getStoreById(String storeId) async {
+    final path = ApiConstants.storeById(storeId);
+    final response = await _dio.get<Map<String, dynamic>>(path);
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return StoreDetailApiResponseModel.fromJson(data);
   }
 
   @override

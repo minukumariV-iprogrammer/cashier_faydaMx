@@ -59,4 +59,10 @@ class FlavorConfig {
   static bool isStaging() => _instance?.flavor == Flavor.stage;
   static bool isProduction() => _instance?.flavor == Flavor.prod;
   static bool isEncryptionEnabled() => _instance?.addEncryption ?? false;
+
+  /// CDN base for `storeLogo` paths (no trailing slash).
+  static String get s3BucketPathWithoutSlash =>
+      isProduction()
+          ? 'https://assets.faydamx.com'
+          : 'https://d2vrc2fo4lveiz.cloudfront.net';
 }

@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../di/injection.dart';
 import '../../../../../core/network/errors/exceptions.dart';
 import '../../../../../core/network/season_holder.dart';
 import '../../../../../core/network/tenant_holder.dart';
 import '../../../../../core/network/token_holder.dart';
 import '../../../../../core/network/token_service.dart';
 import '../../../../../core/models/cashier_profile_snapshot.dart';
+import '../../../../../di/injection.dart';
 import '../../../domain/usecases/cashier_login_usecase.dart';
 import '../../../domain/usecases/fetch_active_season_usecase.dart';
 import '../enums/cashier_login_status.dart';

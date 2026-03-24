@@ -18,7 +18,7 @@ const String _kDefaultBaseUrl = 'https://fmx-api.iprotec.in';
 /// - Custom headers (x-app-scope, x-tenant-id from login city, x-season-id)
 /// - Auth (Bearer from getToken)
 /// - Optional encryption for stage/prod
-/// - cURL logging in debug
+/// - Encrypted cURL after encryption; plain body printed in EncryptionInterceptor
 Dio createDio({
   String? baseUrl,
   required String? Function() getAccessToken,
@@ -44,6 +44,8 @@ Dio createDio({
     ),
   );
 
+  // Encryption runs *before* CurlLogger so logged cURL matches the wire (encrypted body).
+  // Plain JSON is printed separately inside [EncryptionInterceptor].
   final interceptors = <Interceptor>[
     CustomHeaderInterceptor(
       getTenantId: getTenantId,
@@ -54,7 +56,7 @@ Dio createDio({
       EncryptionInterceptor(
         encryptionService,
         excludedPaths: const [
-         // 'api/auth/login', // login typically not encrypted
+        //  'masters/app-version',
         ],
       ),
     CurlLoggerInterceptor(printOnSuccess: true),

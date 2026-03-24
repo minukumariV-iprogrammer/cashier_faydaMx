@@ -55,6 +55,9 @@ class FlavorConfig {
     return _instance!;
   }
 
+  /// True after [init] has been called (dev, stage, or prod).
+  static bool get isInitialized => _instance != null;
+
   static bool isDevelopment() => _instance?.flavor == Flavor.dev;
   static bool isStaging() => _instance?.flavor == Flavor.stage;
   static bool isProduction() => _instance?.flavor == Flavor.prod;

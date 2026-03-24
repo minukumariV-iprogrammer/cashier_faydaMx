@@ -8,6 +8,9 @@ class AppColors {
   static const Color primary = Color(0xFF1A237E);
   static const Color primaryDark = Color(0xFF0D1542);
 
+  /// FaydaBill category / subcategory chip selected (Figma).
+  static const Color faydaBillChipSelected = Color(0xFF0040B8);
+
   // Background - cream / light yellow gradient
   static const Color backgroundLight = Color(0xFFFFFDE7);
   static const Color backgroundWarm = Color(0xFFFFF9C4);

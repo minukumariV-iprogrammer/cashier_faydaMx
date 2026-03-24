@@ -5,4 +5,5 @@ abstract class AppRoutes {
   static const String cashierSplash = '/';
   static const String cashierLoginScreen = '/login';
   static const String cashierDashboard = '/dashboard';
+  static const String createFaydaBill = '/create-faydabill';
 }

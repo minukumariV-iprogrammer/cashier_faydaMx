@@ -235,9 +235,7 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () {
-
-                },
+                onPressed: () => context.push(AppRoutes.createFaydaBill),
                 child: const Text(
                   'Create Fayda Bill  >',
                   style: TextStyle(

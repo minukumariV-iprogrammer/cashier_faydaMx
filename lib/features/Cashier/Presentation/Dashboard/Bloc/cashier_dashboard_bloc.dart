@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/network/errors/exceptions.dart';
 import '../../../../../core/network/token_service.dart';
-import '../../../domain/entities/store_detail_entity.dart';
+import '../../../domain/entities/store_full_entity.dart';
 import '../../../domain/entities/store_summary_entity.dart';
 import '../../../domain/usecases/get_store_detail_usecase.dart';
 import '../../../domain/usecases/get_store_summary_usecase.dart';
@@ -50,10 +50,11 @@ class CashierDashboardBloc
         _getStoreSummaryUseCase(storeId: storeId),
         _getStoreDetailUseCase(storeId: storeId),
       ]);
+      final storeFull = results[1] as StoreFullEntity;
       emit(state.copyWith(
         status: CashierDashboardStatus.success,
         summary: results[0] as StoreSummaryEntity,
-        storeDetail: results[1] as StoreDetailEntity,
+        storeDetail: storeFull.detail,
       ));
     } on InputValidationException catch (e) {
       emit(state.copyWith(

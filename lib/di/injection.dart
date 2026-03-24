@@ -10,6 +10,7 @@ import '../core/network/tenant_holder.dart';
 import '../core/network/token_holder.dart';
 import '../core/network/token_service.dart';
 import '../features/Cashier/di/cashier_di.dart';
+import '../features/create_faydabill/di/create_faydabill_di.dart';
 import '../features/auth/data/datasources/auth_local_datasource.dart';
 import '../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
@@ -26,7 +27,7 @@ Future<void> initDependencies() async {
   );
   sl.registerLazySingleton<FlutterSecureStorage>(() => storage);
   sl.registerLazySingleton<EncryptionService>(
-    () => EncryptionService(sl<FlutterSecureStorage>()),
+    () => EncryptionService(),
   );
   sl.registerLazySingleton<TokenHolder>(() => TokenHolder());
   sl.registerLazySingleton<SeasonHolder>(() => SeasonHolder());
@@ -74,6 +75,7 @@ Future<void> initDependencies() async {
 
   // Cashier feature (splash, login, dashboard)
   initCashierDi(sl);
+  initCreateFaydaBillDi(sl);
 
   // Sync cashier token into TokenHolder so Dio AuthInterceptor uses it
   final cashierToken = await sl<TokenService>().getAccessToken();

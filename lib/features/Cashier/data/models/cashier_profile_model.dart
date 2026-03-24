@@ -31,10 +31,10 @@ class CashierProfileModel {
       fullName: json['full_name']?.toString() ??
           json['fullName']?.toString() ??
           '',
-      userRoles: (roles as List)
+      userRoles: (roles is List ? roles : const [])
           .map((e) => CashierUserRoleModel.fromJson(e as Map<String, dynamic>))
           .toList(),
-      storeList: (stores as List)
+      storeList: (stores is List ? stores : const [])
           .map((e) => CashierStoreModel.fromJson(e as Map<String, dynamic>))
           .toList(),
     );

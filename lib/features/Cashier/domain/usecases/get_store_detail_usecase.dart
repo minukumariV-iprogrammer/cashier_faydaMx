@@ -1,5 +1,5 @@
 import '../../../../core/network/errors/exceptions.dart';
-import '../entities/store_detail_entity.dart';
+import '../entities/store_full_entity.dart';
 import '../repositories/cashier_dashboard_repository.dart';
 
 class GetStoreDetailUseCase {
@@ -7,7 +7,7 @@ class GetStoreDetailUseCase {
 
   final CashierDashboardRepository _repository;
 
-  Future<StoreDetailEntity> call({required String storeId}) async {
+  Future<StoreFullEntity> call({required String storeId}) async {
     if (storeId.isEmpty) {
       throw InputValidationException('No store assigned to this account');
     }

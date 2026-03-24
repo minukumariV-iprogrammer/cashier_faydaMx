@@ -4,8 +4,26 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-/// Logs each request as a cURL command using [log] so the full command
-/// is one log entry and easier to copy from the console without per-line prefixes.
+import '../../constants/flavor_constants.dart';
+
+/// Prints/logs each request as a cURL command for copy-paste (e.g. Postman).
+///
+/// Uses [print] so output shows in the **Terminal** tab when running `flutter run`;
+/// [log] alone often only appears in the Debug Console / device logcat.
+///
+/// Enabled for **dev, stage, and prod** once [FlavorConfig] is initialized, and
+/// in [kDebugMode] before that (e.g. tests).
+bool _shouldLogCurl() {
+  if (FlavorConfig.isInitialized) return true;
+  return kDebugMode;
+}
+
+void _emitCurlLine(String line) {
+  // ignore: avoid_print
+  print(line);
+  log(line, name: 'cURL');
+}
+
 class CurlLoggerInterceptor extends Interceptor {
   CurlLoggerInterceptor({
     this.printOnSuccess = false,
@@ -20,7 +38,7 @@ class CurlLoggerInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) {
-    if (kDebugMode) {
+    if (_shouldLogCurl()) {
       _renderCurlRepresentation(options);
     }
     handler.next(options);
@@ -31,15 +49,17 @@ class CurlLoggerInterceptor extends Interceptor {
     Response response,
     ResponseInterceptorHandler handler,
   ) {
-    if (kDebugMode && printOnSuccess) {
-      log('<-- ${response.statusCode} [${response.requestOptions.method}] ${response.requestOptions.uri}');
+    if (_shouldLogCurl() && printOnSuccess) {
+      final line =
+          '<-- ${response.statusCode} [${response.requestOptions.method}] ${response.requestOptions.uri}';
+      _emitCurlLine(line);
     }
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (kDebugMode) {
+    if (_shouldLogCurl()) {
       _renderCurlRepresentation(err.requestOptions);
     }
     handler.next(err);
@@ -47,9 +67,13 @@ class CurlLoggerInterceptor extends Interceptor {
 
   void _renderCurlRepresentation(RequestOptions requestOptions) {
     try {
-      log(_cURLRepresentation(requestOptions));
+      final curl = _cURLRepresentation(requestOptions);
+      // Full command in one line for Terminal copy-paste; log() duplicates for DevTools.
+      // ignore: avoid_print
+      print(curl);
+      log(curl, name: 'cURL');
     } catch (e) {
-      log('CurlLoggerInterceptor: Unable to build cURL. Error: $e');
+      _emitCurlLine('CurlLoggerInterceptor: Unable to build cURL. Error: $e');
     }
   }
 

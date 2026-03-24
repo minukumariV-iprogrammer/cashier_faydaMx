@@ -19,6 +19,13 @@ class ApiConstants {
   /// GET `/api/store/{storeId}` — store profile (logo, name, status, …).
   static String storeById(String storeId) => '/api/store/$storeId';
 
+  /// POST `/api/customers/by-phone/{phone}` — body `{ "storeId": "..." }`.
+  static String customerByPhone(String phone) =>
+      '/api/customers/by-phone/$phone';
+
+  /// POST `/api/promotions/list` — live promotions for store + subcategory.
+  static const String promotionsList = '/api/promotions/list';
+
   /// GET `/api/store/{storeId}/summary` — cashier dashboard metrics.
   static String storeSummary(String storeId) => '/api/store/$storeId/summary';
 

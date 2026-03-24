@@ -9,6 +9,9 @@ import '../../features/Cashier/Presentation/Dashboard/cashier_Dashboard_Screen.d
 import '../../features/Cashier/Presentation/Login/Screens/cashier_LoginScreen.dart';
 import '../../features/Cashier/Presentation/Splash/cashier_SplashScreen.dart';
 import '../../features/Cashier/Presentation/Login/Bloc/login_bloc.dart';
+import '../../features/create_faydabill/presentation/bloc/create_faydabill_bloc.dart';
+import '../../features/create_faydabill/presentation/bloc/create_faydabill_event.dart';
+import '../../features/create_faydabill/presentation/pages/create_faydabill_page.dart';
 import '../network/token_service.dart';
 import '../navigation/app_routers.dart';
 
@@ -44,6 +47,15 @@ class AppRouter {
             child: const cashierDashBoardScreen(),
           ),
         ),
+        GoRoute(
+          path: AppRoutes.createFaydaBill,
+          name: 'createFaydaBill',
+          builder: (_, __) => BlocProvider<CreateFaydaBillBloc>(
+            create: (_) => sl<CreateFaydaBillBloc>()
+              ..add(const CreateFaydaBillStarted()),
+            child: const CreateFaydaBillPage(),
+          ),
+        ),
       ],
       redirect: (context, state) async {
         final location = state.matchedLocation;
@@ -54,7 +66,7 @@ class AppRouter {
         final isLoggedIn = token != null && token.isNotEmpty;
 
         if (isSplash) return null;
-        if (isLoggedIn && isLogin) return AppRoutes.cashierDashboard;
+        if (isLoggedIn && isLogin)  return AppRoutes.cashierDashboard;
         if (!isLoggedIn && !isLogin) return AppRoutes.cashierLoginScreen;
         return null;
       },

@@ -12,10 +12,14 @@ class CashierAuthDataModel {
   });
 
   factory CashierAuthDataModel.fromJson(Map<String, dynamic> json) {
+    final profileJson = json['profile'];
+    if (profileJson is! Map<String, dynamic>) {
+      throw FormatException('Login data missing profile');
+    }
     return CashierAuthDataModel(
-      accessToken: json['accessToken'],
-      refreshToken: json['refreshToken'],
-      profile: CashierProfileModel.fromJson(json['profile']),
+      accessToken: json['accessToken'] as String? ?? '',
+      refreshToken: json['refreshToken'] as String? ?? '',
+      profile: CashierProfileModel.fromJson(profileJson),
     );
   }
 }

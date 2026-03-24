@@ -4,6 +4,8 @@ import '../../../../core/constants/api_constants.dart';
 import '../models/cashier_login_request_model.dart';
 import '../models/cashier_login_response_model.dart';
 import '../models/eligible_seasons_api_response_model.dart';
+import '../../../create_faydabill/data/models/customer_by_phone_models.dart';
+import '../../../create_faydabill/data/models/promotions_list_models.dart';
 import '../models/store_detail_api_response_model.dart';
 import '../models/store_summary_api_response_model.dart';
 
@@ -16,6 +18,19 @@ abstract class ApiService {
   Future<StoreDetailApiResponseModel> getStoreById(String storeId);
 
   Future<StoreSummaryApiResponseModel> getStoreSummary(String storeId);
+
+  Future<CustomerByPhoneApiResponseModel> lookupCustomerByPhone({
+    required String phone,
+    required String storeId,
+  });
+
+  Future<PromotionsListApiResponseModel> listPromotions({
+    required int page,
+    required int limit,
+    required String status,
+    required String storeId,
+    required int subCategoryId,
+  });
 }
 
 /// Dio-based implementation of [ApiService].
@@ -75,5 +90,48 @@ class CashierApiServiceImpl implements ApiService {
       throw FormatException('Empty response from $path');
     }
     return StoreSummaryApiResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<CustomerByPhoneApiResponseModel> lookupCustomerByPhone({
+    required String phone,
+    required String storeId,
+  }) async {
+    final path = ApiConstants.customerByPhone(phone);
+    final response = await _dio.post<Map<String, dynamic>>(
+      path,
+      data: <String, dynamic>{'storeId': storeId},
+    );
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return CustomerByPhoneApiResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<PromotionsListApiResponseModel> listPromotions({
+    required int page,
+    required int limit,
+    required String status,
+    required String storeId,
+    required int subCategoryId,
+  }) async {
+    const path = ApiConstants.promotionsList;
+    final response = await _dio.post<Map<String, dynamic>>(
+      path,
+      data: <String, dynamic>{
+        'page': page,
+        'limit': limit,
+        'status': status,
+        'storeId': storeId,
+        'subCategoryId': subCategoryId,
+      },
+    );
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return PromotionsListApiResponseModel.fromJson(data);
   }
 }

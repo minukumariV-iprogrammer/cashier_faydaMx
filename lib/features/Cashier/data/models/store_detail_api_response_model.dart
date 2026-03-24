@@ -1,4 +1,4 @@
-import 'store_detail_data_model.dart';
+import 'store_full_data_model.dart';
 
 class StoreDetailApiResponseModel {
   StoreDetailApiResponseModel({
@@ -9,13 +9,13 @@ class StoreDetailApiResponseModel {
 
   final bool success;
   final String message;
-  final StoreDetailDataModel data;
+  final StoreFullDataModel data;
 
   factory StoreDetailApiResponseModel.fromJson(Map<String, dynamic> json) {
     return StoreDetailApiResponseModel(
       success: json['success'] as bool? ?? false,
       message: json['message'] as String? ?? '',
-      data: StoreDetailDataModel.fromJson(
+      data: StoreFullDataModel.fromJson(
         json['data'] as Map<String, dynamic>? ?? {},
       ),
     );

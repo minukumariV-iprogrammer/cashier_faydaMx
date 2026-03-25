@@ -25,6 +25,13 @@ class EncryptedResponseModel {
   Future<Map<String, dynamic>> getDecryptedData(EncryptionService service) async {
     if (data is String) {
       final decrypted = await service.decryptJson(data as String);
+      // Staging may encrypt the full envelope again; use inner envelope as-is to avoid
+      // { data: { success, message, data } } after the interceptor merges the outer HTTP envelope.
+      if (decrypted.containsKey('success') &&
+          decrypted.containsKey('message') &&
+          decrypted.containsKey('data')) {
+        return Map<String, dynamic>.from(decrypted);
+      }
       return {
         'success': success,
         'message': message,

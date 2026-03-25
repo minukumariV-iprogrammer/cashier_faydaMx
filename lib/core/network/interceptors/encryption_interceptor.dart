@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../constants/flavor_constants.dart';
 import '../../encryption/encrypted_response_model.dart';
 import '../../encryption/encryption_service.dart';
 
-/// Interceptor that encrypts request bodies and decrypts response bodies for stage/prod.
+/// Encrypts outgoing request bodies and decrypts responses (stage/prod).
+///
+/// Matches legacy backend: request body `{ "payload": "<iv:ct:tag>" }`.
 class EncryptionInterceptor extends Interceptor {
   EncryptionInterceptor(
     this._encryptionService, {
@@ -34,6 +37,30 @@ class EncryptionInterceptor extends Interceptor {
         (d.containsKey('data') && d.containsKey('success'));
   }
 
+  bool _logPlainAndCipher() => kDebugMode || FlavorConfig.isStaging();
+
+  /// One [print] per line so Android logcat does not truncate mid-JSON.
+  void _printIndentedBlock(String header, Object? content) {
+    // ignore: avoid_print
+    print(header);
+    if (content == null) {
+      // ignore: avoid_print
+      print('null');
+      return;
+    }
+    try {
+      final pretty =
+          const JsonEncoder.withIndent('  ').convert(content);
+      for (final line in pretty.split('\n')) {
+        // ignore: avoid_print
+        print(line);
+      }
+    } catch (_) {
+      // ignore: avoid_print
+      print(content.toString());
+    }
+  }
+
   @override
   Future<void> onRequest(
     RequestOptions options,
@@ -44,17 +71,18 @@ class EncryptionInterceptor extends Interceptor {
         return handler.next(options);
       }
       if (_shouldEncryptRequest(options)) {
-        if (kDebugMode) {
-          final pretty = const JsonEncoder.withIndent('  ').convert(options.data);
-          // ignore: avoid_print
-          print(
-            '--> REQUEST BEFORE ENCRYPTION [${options.method}] ${options.uri}\n$pretty',
+        if (_logPlainAndCipher()) {
+          _printIndentedBlock(
+            '--- PLAIN REQUEST BODY (decrypted view) [${options.method}] ${options.uri} ---',
+            options.data,
           );
+          // ignore: avoid_print
+          print('--- end plain body ---');
         }
         final encrypted = await _encryptionService.encryptJson(
           options.data as Map<String, dynamic>,
         );
-        options.data = {'payload': encrypted};
+        options.data = <String, dynamic>{'payload': encrypted};
         options.headers['Content-Type'] = 'application/json';
       }
       handler.next(options);
@@ -80,11 +108,10 @@ class EncryptionInterceptor extends Interceptor {
       if (_shouldDecryptResponse(response)) {
         final decrypted = await _decryptResponseBody(response.data);
         response.data = decrypted;
-        if (kDebugMode) {
-          final pretty = const JsonEncoder.withIndent('  ').convert(decrypted);
-          // ignore: avoid_print
-          print(
-            '<-- DECRYPTED RESPONSE ${response.statusCode} [${response.requestOptions.method}] ${response.requestOptions.uri}\n$pretty',
+        if (_logPlainAndCipher()) {
+          _printIndentedBlock(
+            '<-- DECRYPTED RESPONSE ${response.statusCode} [${response.requestOptions.method}] ${response.requestOptions.uri}',
+            decrypted,
           );
         }
       }
@@ -100,17 +127,21 @@ class EncryptionInterceptor extends Interceptor {
   }
 
   Future<Map<String, dynamic>> _decryptResponseBody(dynamic data) async {
-    if (data is! Map<String, dynamic>) return data as Map<String, dynamic>;
+    if (data is! Map<String, dynamic>) {
+      return <String, dynamic>{};
+    }
 
     if (data.containsKey('payload') && data.length == 1) {
-      return await _encryptionService.decryptJson(data['payload'] as String);
+      return _encryptionService.decryptJson(data['payload'] as String);
     }
 
     if (data.containsKey('success') &&
         data.containsKey('message') &&
         data.containsKey('data')) {
-      final model = EncryptedResponseModel.fromJson(data);
-      return await model.getDecryptedData(_encryptionService);
+      final encryptedResponse = EncryptedResponseModel.fromJson(data);
+      // [getDecryptedData] already returns a single { success, message, data } envelope;
+      // do not wrap it again under another `data` key (that caused double nesting on stage).
+      return encryptedResponse.getDecryptedData(_encryptionService);
     }
 
     return data;

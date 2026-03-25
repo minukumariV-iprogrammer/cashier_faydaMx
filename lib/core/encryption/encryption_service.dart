@@ -1,61 +1,97 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:encrypt/encrypt.dart' as enc;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:encrypt/encrypt.dart';
 
-import '../constants/app_constants.dart';
+import 'encryption_exception.dart';
 
-/// Service for encrypting/decrypting sensitive data using AES.
+/// AES-256-GCM encryption compatible with the backend (same format as legacy app).
+///
+/// Payload format: `iv:ciphertext:tag` (each segment base64), matching server expectations.
 class EncryptionService {
-  EncryptionService(this._storage);
+  EncryptionService({String? encryptionKey}) {
+    final keyHex = encryptionKey ?? _defaultKeyHex;
+    final cleanKeyHex =
+        keyHex.startsWith('0x') ? keyHex.substring(2) : keyHex;
+    final keyBytes = _hexToBytes(cleanKeyHex);
+    _key = Key(keyBytes);
+  }
 
-  final FlutterSecureStorage _storage;
-  enc.Encrypter? _encrypter;
-  enc.IV? _iv;
+  static const String _defaultKeyHex =
+      '48e6fb53e592405520b1f34f55ae0e8189bff1e83295bf6f27fe0c8239506b91';
 
-  static const _ivKey = 'fmx_iv_16bytes!!';
+  late final Key _key;
 
-  Future<void> init() async {
-    var keyBase64 = await _storage.read(key: AppConstants.keyEncryptionKey);
-    if (keyBase64 == null || keyBase64.isEmpty) {
-      final key = enc.Key.fromLength(32);
-      keyBase64 = key.base64;
-      await _storage.write(key: AppConstants.keyEncryptionKey, value: keyBase64);
+  /// Called from DI before Dio; key is ready in constructor.
+  Future<void> init() async {}
+
+  Uint8List _hexToBytes(String hex) {
+    final bytes = <int>[];
+    for (var i = 0; i < hex.length; i += 2) {
+      bytes.add(int.parse(hex.substring(i, i + 2), radix: 16));
     }
-    final key = enc.Key.fromBase64(keyBase64);
-    _encrypter = enc.Encrypter(enc.AES(key));
-    _iv = enc.IV.fromUtf8(_ivKey);
+    return Uint8List.fromList(bytes);
   }
 
-  Future<String> encrypt(String plain) async {
-    await _ensureInit();
-    final encrypted = _encrypter!.encrypt(plain, iv: _iv!);
-    return encrypted.base64;
+  String _base64Encode(Uint8List bytes) => base64Encode(bytes);
+
+  Uint8List _base64Decode(String str) => base64Decode(str);
+
+  /// Encrypts UTF-8 text; returns `iv:ciphertext:tag` (base64 segments).
+  String encrypt(String text) {
+    try {
+      final iv = IV.fromSecureRandom(12);
+      final encrypter = Encrypter(AES(_key, mode: AESMode.gcm));
+      final encrypted = encrypter.encrypt(text, iv: iv);
+      final encryptedBytes = encrypted.bytes;
+      const tagLength = 16;
+      final ciphertext =
+          encryptedBytes.sublist(0, encryptedBytes.length - tagLength);
+      final tag = encryptedBytes.sublist(encryptedBytes.length - tagLength);
+      return '${_base64Encode(iv.bytes)}:${_base64Encode(ciphertext)}:${_base64Encode(tag)}';
+    } catch (e) {
+      throw EncryptionException('Failed to encrypt data: $e');
+    }
   }
 
-  Future<String> decrypt(String cipherBase64) async {
-    await _ensureInit();
-    final encrypted = enc.Encrypted.fromBase64(cipherBase64);
-    return _encrypter!.decrypt(encrypted, iv: _iv!);
+  /// Decrypts a string produced by [encrypt].
+  String decrypt(String payload) {
+    try {
+      final parts = payload.split(':');
+      if (parts.length != 3) {
+        throw EncryptionException('Invalid encrypted payload format');
+      }
+      final ivBytes = _base64Decode(parts[0]);
+      final ciphertext = _base64Decode(parts[1]);
+      final tag = _base64Decode(parts[2]);
+      final iv = IV(ivBytes);
+      final combinedData = Uint8List.fromList([...ciphertext, ...tag]);
+      final encrypted = Encrypted(combinedData);
+      final encrypter = Encrypter(AES(_key, mode: AESMode.gcm));
+      return encrypter.decrypt(encrypted, iv: iv);
+    } catch (e) {
+      throw EncryptionException('Failed to decrypt data: $e');
+    }
   }
 
-  /// Encrypts a JSON map and returns base64 string.
+  /// Encrypts a JSON map to the wire payload string.
   Future<String> encryptJson(Map<String, dynamic> json) async {
-    await _ensureInit();
-    final plain = jsonEncode(json);
-    final encrypted = _encrypter!.encrypt(plain, iv: _iv!);
-    return encrypted.base64;
+    final jsonString = jsonEncode(json);
+    return encrypt(jsonString);
   }
 
-  /// Decrypts base64 cipher and returns decoded JSON map.
-  Future<Map<String, dynamic>> decryptJson(String cipherBase64) async {
-    await _ensureInit();
-    final encrypted = enc.Encrypted.fromBase64(cipherBase64);
-    final plain = _encrypter!.decrypt(encrypted, iv: _iv!);
-    return jsonDecode(plain) as Map<String, dynamic>;
-  }
-
-  Future<void> _ensureInit() async {
-    if (_encrypter == null) await init();
+  /// Decrypts payload and parses JSON.
+  Future<Map<String, dynamic>> decryptJson(String encryptedPayload) async {
+    final decryptedString = decrypt(encryptedPayload);
+    final decoded = jsonDecode(decryptedString);
+    if (decoded is List) {
+      return {'data': decoded};
+    }
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+    throw EncryptionException(
+      'Decrypted data is neither a Map nor a List',
+    );
   }
 }

@@ -1,3 +1,4 @@
+import '../../../../core/network/api_response_unwrap.dart';
 import 'eligible_season_item_model.dart';
 
 class EligibleSeasonsDataModel {
@@ -27,12 +28,11 @@ class EligibleSeasonsApiResponseModel {
   final EligibleSeasonsDataModel data;
 
   factory EligibleSeasonsApiResponseModel.fromJson(Map<String, dynamic> json) {
+    final payload = unwrapApiDataPayload(json);
     return EligibleSeasonsApiResponseModel(
       success: json['success'] as bool? ?? false,
       message: json['message'] as String? ?? '',
-      data: EligibleSeasonsDataModel.fromJson(
-        json['data'] as Map<String, dynamic>? ?? {},
-      ),
+      data: EligibleSeasonsDataModel.fromJson(payload),
     );
   }
 }

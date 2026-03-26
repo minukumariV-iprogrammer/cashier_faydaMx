@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,8 +27,8 @@ class CashierApp extends StatefulWidget {
 
 class _CashierAppState extends State<CashierApp> {
   late final GoRouter _router;
-  bool _initialized = false;
-  String? _initError;
+  final ValueNotifier<bool> _bootstrapReady = ValueNotifier<bool>(false);
+  final ValueNotifier<String?> _bootstrapError = ValueNotifier<String?>(null);
   static final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
@@ -53,52 +54,63 @@ class _CashierAppState extends State<CashierApp> {
         ),
       );
       await initDependencies();
-      if (mounted) setState(() => _initialized = true);
+      if (mounted) _bootstrapReady.value = true;
     } catch (e, st) {
       if (mounted) {
-        setState(() {
-          _initialized = true;
-          _initError = e.toString();
-        });
+        _bootstrapError.value = e.toString();
+        _bootstrapReady.value = true;
       }
     }
   }
 
   @override
+  void dispose() {
+    _bootstrapReady.dispose();
+    _bootstrapError.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (!_initialized) {
-      return MaterialApp(
-        theme: AppTheme.light,
-        home: const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
-      );
-    }
-    if (_initError != null) {
-      return MaterialApp(
-        theme: AppTheme.light,
-        home: Scaffold(
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text('Init error: $_initError'),
+    return AnimatedBuilder(
+      animation: Listenable.merge([_bootstrapReady, _bootstrapError]),
+      builder: (context, _) {
+        if (!_bootstrapReady.value) {
+          return MaterialApp(
+            theme: AppTheme.light,
+            home: const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
             ),
+          );
+        }
+        final err = _bootstrapError.value;
+        if (err != null) {
+          return MaterialApp(
+            theme: AppTheme.light,
+            home: Scaffold(
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text('Init error: $err'),
+                ),
+              ),
+            ),
+          );
+        }
+        return ScreenUtilInit(
+          designSize: const Size(390, 844),
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (context, child) => child!,
+          child: MaterialApp.router(
+            scaffoldMessengerKey: _scaffoldMessengerKey,
+            title: 'FaydaMX Central',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            routerConfig: _router,
           ),
-        ),
-      );
-    }
-    return ScreenUtilInit(
-      designSize: const Size(390, 844),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) => child!,
-      child: MaterialApp.router(
-        scaffoldMessengerKey: _scaffoldMessengerKey,
-        title: 'FaydaMX Central',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        routerConfig: _router,
-      ),
+        );
+      },
     );
   }
 }

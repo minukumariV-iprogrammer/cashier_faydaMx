@@ -87,7 +87,8 @@ class _FaydaTransactionVerifyDialogState
     extends State<_FaydaTransactionVerifyDialog> {
   late final List<TextEditingController> _digits;
   late final List<FocusNode> _focusNodes;
-  bool _saveBillDetails = true;
+  final ValueNotifier<bool> _saveBillDetails = ValueNotifier<bool>(true);
+  final ValueNotifier<int> _pinTick = ValueNotifier<int>(0);
 
   @override
   void initState() {
@@ -101,6 +102,8 @@ class _FaydaTransactionVerifyDialogState
 
   @override
   void dispose() {
+    _saveBillDetails.dispose();
+    _pinTick.dispose();
     for (final c in _digits) {
       c.dispose();
     }
@@ -109,6 +112,8 @@ class _FaydaTransactionVerifyDialogState
     }
     super.dispose();
   }
+
+  void _refreshPinUi() => _pinTick.value++;
 
   String get _pin => _digits.map((c) => c.text).join();
 
@@ -119,12 +124,12 @@ class _FaydaTransactionVerifyDialogState
     final digitsOnly = raw.replaceAll(RegExp(r'\D'), '');
     if (digitsOnly.length > 1) {
       _spreadPaste(digitsOnly);
-      setState(() {});
+      _refreshPinUi();
       return;
     }
     if (digitsOnly.isEmpty) {
       _digits[i].text = '';
-      setState(() {});
+      _refreshPinUi();
       return;
     }
     _digits[i].text = digitsOnly;
@@ -134,7 +139,7 @@ class _FaydaTransactionVerifyDialogState
     } else {
       _focusNodes[i].unfocus();
     }
-    setState(() {});
+    _refreshPinUi();
   }
 
   void _spreadPaste(String digits) {
@@ -179,7 +184,10 @@ class _FaydaTransactionVerifyDialogState
                 final submitting = state.cashierTransactionSubmitting;
                 final err = state.cashierTransactionError;
 
-                return Column(
+                return AnimatedBuilder(
+                  animation: Listenable.merge([_pinTick, _saveBillDetails]),
+                  builder: (context, _) {
+                    return Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -284,13 +292,13 @@ class _FaydaTransactionVerifyDialogState
                           height: 24,
                           width: 24,
                           child: Checkbox(
-                            value: _saveBillDetails,
+                            value: _saveBillDetails.value,
                             activeColor: const Color(0xFF43A047),
                             onChanged: submitting
                                 ? null
-                                : (v) => setState(
-                                    () => _saveBillDetails = v ?? true,
-                                  ),
+                                : (v) {
+                                    _saveBillDetails.value = v ?? true;
+                                  },
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -326,7 +334,7 @@ class _FaydaTransactionVerifyDialogState
                                 context.read<CreateFaydaBillBloc>().add(
                                       CreateFaydaBillTransactionConfirmRequested(
                                         pin: _pin,
-                                        isBillSave: _saveBillDetails,
+                                        isBillSave: _saveBillDetails.value,
                                       ),
                                     );
                               },
@@ -359,6 +367,8 @@ class _FaydaTransactionVerifyDialogState
                       ),
                     ),
                   ],
+                    );
+                  },
                 );
               },
             ),

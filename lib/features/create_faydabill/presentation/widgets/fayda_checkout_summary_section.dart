@@ -36,8 +36,15 @@ class FaydaCheckoutSummarySection extends StatefulWidget {
 
 class _FaydaCheckoutSummarySectionState
     extends State<FaydaCheckoutSummarySection> {
-  bool _productExpanded = false;
-  bool _faydaBillExpanded = false;
+  final ValueNotifier<bool> _productExpanded = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _faydaBillExpanded = ValueNotifier<bool>(false);
+
+  @override
+  void dispose() {
+    _productExpanded.dispose();
+    _faydaBillExpanded.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,16 +59,20 @@ class _FaydaCheckoutSummarySectionState
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _ExpandableHeader(
-            title: 'PRODUCT & EXTRA BENEFITS SUMMARY',
-            count: itemCount,
-            expanded: _productExpanded,
-            onTap: () => setState(() => _productExpanded = !_productExpanded),
-          ),
-          if (_productExpanded) ...[
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_productExpanded, _faydaBillExpanded]),
+        builder: (context, _) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _ExpandableHeader(
+                title: 'PRODUCT & EXTRA BENEFITS SUMMARY',
+                count: itemCount,
+                expanded: _productExpanded.value,
+                onTap: () =>
+                    _productExpanded.value = !_productExpanded.value,
+              ),
+              if (_productExpanded.value) ...[
             const SizedBox(height: 8),
             Container(
               color: _kListBg,
@@ -105,14 +116,15 @@ class _FaydaCheckoutSummarySectionState
                     ),
             ),
           ],
-          const Divider(height: 1, thickness: 1, color: Color(0xFFE0E0E0)),
-          _ExpandableHeader(
-            title: 'FAYDABILL SUMMARY',
-            count: itemCount,
-            expanded: _faydaBillExpanded,
-            onTap: () => setState(() => _faydaBillExpanded = !_faydaBillExpanded),
-          ),
-          if (_faydaBillExpanded) ...[
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE0E0E0)),
+              _ExpandableHeader(
+                title: 'FAYDABILL SUMMARY',
+                count: itemCount,
+                expanded: _faydaBillExpanded.value,
+                onTap: () =>
+                    _faydaBillExpanded.value = !_faydaBillExpanded.value,
+              ),
+              if (_faydaBillExpanded.value) ...[
             const SizedBox(height: 4),
             _FaydaBillExpandedPanel(
               state: s,
@@ -120,62 +132,64 @@ class _FaydaCheckoutSummarySectionState
               summary: sum,
             ),
           ],
-          const Divider(height: 1, thickness: 1, color: Color(0xFFE0E0E0)),
-          const SizedBox(height: 12),
-          _SummaryValueRow(
-            label: 'Total GV',
-            valueText: _fmtOrDash(sum?.totalGV, hasCart),
-          ),
-          const SizedBox(height: 10),
-          _SummaryValueRow(
-            label: 'Total Extra FaydaMX Coins',
-            valueText: _fmtOrDash(
-              _previewTotalExtraFaydaMxCoins(sum),
-              hasCart,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _SummaryValueRow(
-            label: 'Referral Bonus to Referrer',
-            valueText: _fmtOrDash(sum?.rewardToReferrer, hasCart),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Icon(Icons.lock_outline, size: 16, color: Colors.grey.shade500),
-              const SizedBox(width: 6),
-              Text(
-                'Store Referral is requested',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE0E0E0)),
+              const SizedBox(height: 12),
+              _SummaryValueRow(
+                label: 'Total GV',
+                valueText: _fmtOrDash(sum?.totalGV, hasCart),
+              ),
+              const SizedBox(height: 10),
+              _SummaryValueRow(
+                label: 'Total Extra FaydaMX Coins',
+                valueText: _fmtOrDash(
+                  _previewTotalExtraFaydaMxCoins(sum),
+                  hasCart,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _SummaryValueRow(
+                label: 'Referral Bonus to Referrer',
+                valueText: _fmtOrDash(sum?.rewardToReferrer, hasCart),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Icon(Icons.lock_outline, size: 16, color: Colors.grey.shade500),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Store Referral is requested',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: canSubmit
+                      ? () => showFaydaTransactionVerifyDialog(context)
+                      : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.faydaBillChipSelected,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Submit',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                  ),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: canSubmit
-                  ? () => showFaydaTransactionVerifyDialog(context)
-                  : null,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.faydaBillChipSelected,
-                disabledBackgroundColor: Colors.grey.shade300,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text(
-                'Submit',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

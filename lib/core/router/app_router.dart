@@ -6,7 +6,11 @@ import '../../di/injection.dart';
 import '../../features/Cashier/Presentation/Dashboard/Bloc/cashier_dashboard_bloc.dart';
 import '../../features/Cashier/Presentation/Dashboard/Bloc/cashier_dashboard_event.dart';
 import '../../features/Cashier/Presentation/Dashboard/cashier_Dashboard_Screen.dart';
+import '../../features/Cashier/Presentation/ForgotPassword/Bloc/forgot_password_bloc.dart';
+import '../../features/Cashier/Presentation/ForgotPassword/Screens/cashier_forgot_password_screen.dart';
 import '../../features/Cashier/Presentation/Login/Screens/cashier_LoginScreen.dart';
+import '../../features/Cashier/Presentation/ResetPassword/Screens/cashier_reset_password_screen.dart';
+import '../../features/Cashier/Presentation/ResetPassword/cashier_reset_password_args.dart';
 import '../../features/Cashier/Presentation/Splash/cashier_SplashScreen.dart';
 import '../../features/Cashier/Presentation/Login/Bloc/login_bloc.dart';
 import '../../features/create_faydabill/presentation/bloc/create_faydabill_bloc.dart';
@@ -39,6 +43,25 @@ class AppRouter {
           ),
         ),
         GoRoute(
+          path: AppRoutes.cashierForgotPassword,
+          name: 'forgotPassword',
+          builder: (_, __) => BlocProvider<ForgotPasswordBloc>(
+            create: (_) => sl<ForgotPasswordBloc>(),
+            child: const CashierForgotPasswordScreen(),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.cashierResetPassword,
+          name: 'resetPassword',
+          builder: (_, state) {
+            final extra = state.extra;
+            final args = extra is CashierResetPasswordArgs
+                ? extra
+                : const CashierResetPasswordArgs(username: '');
+            return CashierResetPasswordScreen(args: args);
+          },
+        ),
+        GoRoute(
           path: AppRoutes.cashierDashboard,
           name: 'dashboard',
           builder: (_, __) => BlocProvider<CashierDashboardBloc>(
@@ -61,13 +84,23 @@ class AppRouter {
         final location = state.matchedLocation;
         final isSplash = location == AppRoutes.cashierSplash;
         final isLogin = location == AppRoutes.cashierLoginScreen;
+        final isForgotPassword = location == AppRoutes.cashierForgotPassword;
+        final isResetPassword = location == AppRoutes.cashierResetPassword;
 
         final token = await sl<TokenService>().getAccessToken();
         final isLoggedIn = token != null && token.isNotEmpty;
 
         if (isSplash) return null;
-        if (isLoggedIn && isLogin)  return AppRoutes.cashierDashboard;
-        if (!isLoggedIn && !isLogin) return AppRoutes.cashierLoginScreen;
+        if (isLoggedIn &&
+            (isLogin || isForgotPassword || isResetPassword)) {
+          return AppRoutes.cashierDashboard;
+        }
+        if (!isLoggedIn &&
+            !isLogin &&
+            !isForgotPassword &&
+            !isResetPassword) {
+          return AppRoutes.cashierLoginScreen;
+        }
         return null;
       },
     );

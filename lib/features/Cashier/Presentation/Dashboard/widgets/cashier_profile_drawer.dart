@@ -1,5 +1,6 @@
 import 'dart:math' show min;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -28,7 +29,8 @@ class CashierProfileDrawer extends StatefulWidget {
 }
 
 class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
-  CashierProfileSnapshot? _profile;
+  final ValueNotifier<CashierProfileSnapshot?> _profile =
+      ValueNotifier<CashierProfileSnapshot?>(null);
 
   @override
   void initState() {
@@ -36,13 +38,19 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
     _load();
   }
 
+  @override
+  void dispose() {
+    _profile.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     final p = await sl<TokenService>().getCashierProfileSnapshot();
-    if (mounted) setState(() => _profile = p);
+    if (mounted) _profile.value = p;
   }
 
   void _openChangePassword(BuildContext context) {
-    final u = _profile?.username.trim() ?? '';
+    final u = _profile.value?.username.trim() ?? '';
     if (u.isEmpty) {
       ToastUtils.showErrorToast(message: 'Username not available.');
       return;
@@ -58,7 +66,7 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
   }
 
   Future<void> _openEditProfile(BuildContext context) async {
-    final p = _profile;
+    final p = _profile.value;
     if (p == null) return;
     if (p.userId.isEmpty) {
       ToastUtils.showErrorToast(
@@ -73,15 +81,15 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
     );
     if (!mounted || updated == null) return;
     await sl<TokenService>().setCashierProfileSnapshot(updated);
-    setState(() => _profile = updated);
+    _profile.value = updated;
     widget.onClose();
     ToastUtils.showSuccessToast(message: 'Profile updated successfully!!');
   }
 
-  String get _initialLetter {
-    final name = _profile?.fullName.trim() ?? '';
+  String _initialLetter(CashierProfileSnapshot? p) {
+    final name = p?.fullName.trim() ?? '';
     if (name.isNotEmpty) return name[0].toUpperCase();
-    final u = _profile?.username.trim() ?? '';
+    final u = p?.username.trim() ?? '';
     if (u.isNotEmpty) return u[0].toUpperCase();
     return '?';
   }
@@ -89,9 +97,11 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
   @override
   Widget build(BuildContext context) {
     final drawerWidth = min(360.w, 0.9.sw);
-    final p = _profile;
 
-    return Drawer(
+    return ValueListenableBuilder<CashierProfileSnapshot?>(
+      valueListenable: _profile,
+      builder: (context, p, _) {
+        return Drawer(
       width: drawerWidth,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(topLeft: Radius.circular(16.r)),
@@ -118,7 +128,7 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
                 child: Column(
                   children: [
                     SizedBox(height: 8.h),
-                    _Avatar(initial: _initialLetter),
+                    _Avatar(initial: _initialLetter(p)),
                     SizedBox(height: 16.h),
                     Text(
                       p?.fullName.isNotEmpty == true ? p!.fullName : 'User',
@@ -248,6 +258,8 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
           ],
         ),
       ),
+    );
+      },
     );
   }
 }

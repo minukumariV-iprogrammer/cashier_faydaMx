@@ -12,6 +12,13 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String cashierLogin = '/api/auth/login';
 
+  /// POST `/api/auth/forgot-password` — request OTP for password reset.
+  static const String forgotPassword = '/api/auth/forgot-password';
+
+  /// POST `/api/auth/verify-forgot-password-otp` — verify OTP & set new password.
+  static const String verifyForgotPasswordOtp =
+      '/api/auth/verify-forgot-password-otp';
+
   /// POST `/api/auth/reset-password` — change password (cashier).
   static const String resetPassword = '/api/auth/reset-password';
 

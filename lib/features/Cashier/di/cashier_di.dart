@@ -6,6 +6,7 @@ import '../../../../core/network/season_holder.dart';
 import '../../../../core/network/tenant_holder.dart';
 import '../../../../core/network/token_service.dart';
 import '../Presentation/Dashboard/Bloc/cashier_dashboard_bloc.dart';
+import '../Presentation/ForgotPassword/Bloc/forgot_password_bloc.dart';
 import '../Presentation/Login/Bloc/login_bloc.dart';
 import '../data/api/cashier_api_service.dart';
 import '../data/datasource/cashier_auth_remote_ds.dart';
@@ -18,6 +19,7 @@ import '../domain/repositories/cashier_auth_repository.dart';
 import '../domain/repositories/cashier_dashboard_repository.dart';
 import '../domain/repositories/cashier_season_repository.dart';
 import '../domain/usecases/cashier_login_usecase.dart';
+import '../domain/usecases/forgot_password_usecase.dart';
 import '../domain/usecases/fetch_active_season_usecase.dart';
 import '../domain/usecases/get_store_detail_usecase.dart';
 import '../domain/usecases/get_store_summary_usecase.dart';
@@ -57,6 +59,9 @@ void initCashierDi(GetIt sl) {
   sl.registerLazySingleton<CashierLoginUseCase>(
         () => CashierLoginUseCase(sl()),
   );
+  sl.registerLazySingleton<ForgotPasswordUseCase>(
+    () => ForgotPasswordUseCase(sl<CashierAuthRepository>()),
+  );
   sl.registerLazySingleton<GetStoreSummaryUseCase>(
     () => GetStoreSummaryUseCase(sl<CashierDashboardRepository>()),
   );
@@ -75,6 +80,11 @@ void initCashierDi(GetIt sl) {
       fetchActiveSeasonUseCase: sl<FetchActiveSeasonUseCase>(),
       seasonHolder: sl<SeasonHolder>(),
       tenantHolder: sl<TenantHolder>(),
+    ),
+  );
+  sl.registerFactory<ForgotPasswordBloc>(
+    () => ForgotPasswordBloc(
+      forgotPasswordUseCase: sl<ForgotPasswordUseCase>(),
     ),
   );
   sl.registerFactory<CashierDashboardBloc>(

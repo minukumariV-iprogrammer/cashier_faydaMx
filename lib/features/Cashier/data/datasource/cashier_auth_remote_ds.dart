@@ -2,11 +2,22 @@ import '../../../../core/network/handle_api_call.dart';
 import '../api/cashier_api_service.dart';
 import '../models/cashier_login_request_model.dart';
 import '../models/cashier_login_response_model.dart';
+import '../models/forgot_password_api_response_model.dart';
 
 abstract class CashierAuthRemoteDataSource {
   Future<CashierLoginResponseModel> login(
     CashierLoginRequestModel request,
   );
+
+  Future<ForgotPasswordApiResponseModel> forgotPassword({
+    required String username,
+  });
+
+  Future<void> verifyForgotPasswordOtp({
+    required String username,
+    required String otp,
+    required String newPassword,
+  });
 
   Future<void> resetPassword({
     required String username,
@@ -41,6 +52,33 @@ class CashierAuthRemoteDataSourceImpl
     } catch (e) {
       rethrow;
     }
+  }
+
+  @override
+  Future<ForgotPasswordApiResponseModel> forgotPassword({
+    required String username,
+  }) async {
+    return handleApiCall(
+      apiService.forgotPassword(<String, dynamic>{
+        'username': username,
+        'portal': 'merchant',
+      }),
+    );
+  }
+
+  @override
+  Future<void> verifyForgotPasswordOtp({
+    required String username,
+    required String otp,
+    required String newPassword,
+  }) async {
+    await handleApiCall(
+      apiService.verifyForgotPasswordOtp(<String, dynamic>{
+        'username': username,
+        'otp': otp,
+        'newPassword': newPassword,
+      }),
+    );
   }
 
   @override

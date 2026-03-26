@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,22 +19,15 @@ class cashierLoginScreen extends StatefulWidget {
 }
 
 class _cashierLoginScreenState extends State<cashierLoginScreen> {
-
-
-
-
-  bool _obscurePassword = true;
+  final ValueNotifier<bool> _obscurePassword = ValueNotifier<bool>(true);
 
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-
-
-
-
   @override
   void dispose() {
+    _obscurePassword.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -149,53 +143,57 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
 
                       SizedBox(height: 20.h),
 
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Password is required';
-                          }
-                          return null;
-                        },
-                        onChanged: (value) {
-                          context.read<CashierLoginBloc>().add(PasswordChanged(value),);
-                        },
-
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          hintText: 'demo453',
-
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.remove_red_eye_outlined,
-                              color: Colors.black54,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
+                      ValueListenableBuilder<bool>(
+                        valueListenable: _obscurePassword,
+                        builder: (context, obscure, _) {
+                          return TextFormField(
+                            controller: _passwordController,
+                            obscureText: obscure,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password is required';
+                              }
+                              return null;
                             },
-                          ),
-
-                          filled: true,
-                          fillColor: const Color(0x00FFD417),
-
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                            borderSide: const BorderSide(color: Colors.black26),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                            borderSide: const BorderSide(color: Colors.black26),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                            borderSide: const BorderSide(color: Colors.black87),
-                          ),
-                        ),
+                            onChanged: (value) {
+                              context
+                                  .read<CashierLoginBloc>()
+                                  .add(PasswordChanged(value));
+                            },
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              hintText: 'demo453',
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  obscure
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.remove_red_eye_outlined,
+                                  color: Colors.black54,
+                                ),
+                                onPressed: () {
+                                  _obscurePassword.value = !obscure;
+                                },
+                              ),
+                              filled: true,
+                              fillColor: const Color(0x00FFD417),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide:
+                                    const BorderSide(color: Colors.black26),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide:
+                                    const BorderSide(color: Colors.black26),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide:
+                                    const BorderSide(color: Colors.black87),
+                              ),
+                            ),
+                          );
+                        },
                       ),
 
                       SizedBox(height: 8.h),
@@ -203,7 +201,8 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () =>
+                              context.push(AppRoutes.cashierForgotPassword),
                           child: Text(
                             'Forgot password?',
                             style: TextStyle(fontSize: 12.sp),

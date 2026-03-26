@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -22,8 +23,10 @@ class _CashierEditProfileDialogState extends State<CashierEditProfileDialog> {
   late final TextEditingController _emailCtrl;
   late final TextEditingController _phoneCtrl;
 
-  bool _submitting = false;
-  String? _apiError;
+  late final ValueNotifier<bool> _submitting;
+  late final ValueNotifier<String?> _apiError;
+  late final ValueNotifier<int> _formTick;
+  late final Listenable _ui;
 
   @override
   void initState() {
@@ -32,13 +35,22 @@ class _CashierEditProfileDialogState extends State<CashierEditProfileDialog> {
     _fullNameCtrl = TextEditingController(text: s.fullName);
     _emailCtrl = TextEditingController(text: s.email);
     _phoneCtrl = TextEditingController(text: s.phone);
+    _submitting = ValueNotifier<bool>(false);
+    _apiError = ValueNotifier<String?>(null);
+    _formTick = ValueNotifier<int>(0);
+    _ui = Listenable.merge([_submitting, _apiError, _formTick]);
   }
+
+  void _tickForm() => _formTick.value++;
 
   @override
   void dispose() {
     _fullNameCtrl.dispose();
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
+    _submitting.dispose();
+    _apiError.dispose();
+    _formTick.dispose();
     super.dispose();
   }
 
@@ -52,21 +64,19 @@ class _CashierEditProfileDialogState extends State<CashierEditProfileDialog> {
   }
 
   Future<void> _submit() async {
-    if (!_formReady || _submitting) return;
+    if (!_formReady || _submitting.value) return;
     final s = widget.snapshot;
     if (s.userId.isEmpty) {
-      setState(() => _apiError = 'Profile id missing. Please log in again.');
+      _apiError.value = 'Profile id missing. Please log in again.';
       return;
     }
     if (s.roleId == 0) {
-      setState(() => _apiError = 'Role not found. Please log in again.');
+      _apiError.value = 'Role not found. Please log in again.';
       return;
     }
 
-    setState(() {
-      _submitting = true;
-      _apiError = null;
-    });
+    _submitting.value = true;
+    _apiError.value = null;
 
     final fullName = _fullNameCtrl.text.trim();
     final email = _emailCtrl.text.trim();
@@ -93,19 +103,11 @@ class _CashierEditProfileDialogState extends State<CashierEditProfileDialog> {
       );
       Navigator.of(context).pop(updated);
     } on ServerException catch (e) {
-      if (mounted) {
-        setState(() {
-          _submitting = false;
-          _apiError = e.message ?? 'Could not update profile';
-        });
-      }
+      _submitting.value = false;
+      _apiError.value = e.message ?? 'Could not update profile';
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _submitting = false;
-          _apiError = e.toString();
-        });
-      }
+      _submitting.value = false;
+      _apiError.value = e.toString();
     }
   }
 
@@ -113,108 +115,115 @@ class _CashierEditProfileDialogState extends State<CashierEditProfileDialog> {
   Widget build(BuildContext context) {
     final s = widget.snapshot;
 
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18.r),
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 400.w),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 16.h),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Edit Profile',
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                if (_apiError != null) ...[
-                  SizedBox(height: 12.h),
-                  Text(
-                    _apiError!,
-                    style: TextStyle(color: Colors.red, fontSize: 13.sp),
-                  ),
-                ],
-                SizedBox(height: 16.h),
-                _ReadOnlyUsername(username: s.username),
-                SizedBox(height: 12.h),
-                _EditField(
-                  controller: _fullNameCtrl,
-                  label: 'Full Name*',
-                  keyboardType: TextInputType.name,
-                  onChanged: () => setState(() {}),
-                ),
-                SizedBox(height: 12.h),
-                _EditField(
-                  controller: _emailCtrl,
-                  label: 'Email Id*',
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: () => setState(() {}),
-                ),
-                SizedBox(height: 12.h),
-                _EditField(
-                  controller: _phoneCtrl,
-                  label: 'Mobile Number*',
-                  keyboardType: TextInputType.phone,
-                  onChanged: () => setState(() {}),
-                ),
-                SizedBox(height: 20.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+    return AnimatedBuilder(
+      animation: _ui,
+      builder: (context, _) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.r),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 400.w),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 16.h),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    OutlinedButton(
-                      onPressed: _submitting
-                          ? null
-                          : () => Navigator.of(context).pop(),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.black87,
-                        side: const BorderSide(color: Color(0xFF9CA3AF)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
+                    Text(
+                      'Edit Profile',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
-                      child: Text('Cancel', style: TextStyle(fontSize: 14.sp)),
                     ),
-                    SizedBox(width: 12.w),
-                    FilledButton(
-                      onPressed:
-                          (_formReady && !_submitting) ? _submit : null,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: const Color(0xFFD1D5DB),
-                        disabledForegroundColor: Colors.white70,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
+                    if (_apiError.value != null) ...[
+                      SizedBox(height: 12.h),
+                      Text(
+                        _apiError.value!,
+                        style: TextStyle(color: Colors.red, fontSize: 13.sp),
                       ),
-                      child: _submitting
-                          ? SizedBox(
-                              width: 20.w,
-                              height: 20.w,
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              'Save',
-                              style: TextStyle(fontSize: 14.sp),
+                    ],
+                    SizedBox(height: 16.h),
+                    _ReadOnlyUsername(username: s.username),
+                    SizedBox(height: 12.h),
+                    _EditField(
+                      controller: _fullNameCtrl,
+                      label: 'Full Name*',
+                      keyboardType: TextInputType.name,
+                      onChanged: _tickForm,
+                    ),
+                    SizedBox(height: 12.h),
+                    _EditField(
+                      controller: _emailCtrl,
+                      label: 'Email Id*',
+                      keyboardType: TextInputType.emailAddress,
+                      onChanged: _tickForm,
+                    ),
+                    SizedBox(height: 12.h),
+                    _EditField(
+                      controller: _phoneCtrl,
+                      label: 'Mobile Number*',
+                      keyboardType: TextInputType.phone,
+                      onChanged: _tickForm,
+                    ),
+                    SizedBox(height: 20.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton(
+                          onPressed: _submitting.value
+                              ? null
+                              : () => Navigator.of(context).pop(),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.black87,
+                            side: const BorderSide(color: Color(0xFF9CA3AF)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.r),
                             ),
+                          ),
+                          child:
+                              Text('Cancel', style: TextStyle(fontSize: 14.sp)),
+                        ),
+                        SizedBox(width: 12.w),
+                        FilledButton(
+                          onPressed: (_formReady && !_submitting.value)
+                              ? _submit
+                              : null,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: const Color(0xFFD1D5DB),
+                            disabledForegroundColor: Colors.white70,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                          ),
+                          child: _submitting.value
+                              ? SizedBox(
+                                  width: 20.w,
+                                  height: 20.w,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  'Save',
+                                  style: TextStyle(fontSize: 14.sp),
+                                ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -232,7 +241,8 @@ class _ReadOnlyUsername extends StatelessWidget {
         isDense: true,
         filled: true,
         fillColor: Colors.grey.shade100,
-        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+        contentPadding:
+            EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
@@ -265,14 +275,13 @@ class _EditField extends StatelessWidget {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      onChanged: (_) {
-        onChanged();
-      },
+      onChanged: (_) => onChanged(),
       style: TextStyle(fontSize: 14.sp),
       decoration: InputDecoration(
         labelText: label,
         isDense: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+        contentPadding:
+            EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),

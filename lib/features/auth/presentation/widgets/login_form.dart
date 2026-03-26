@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -16,10 +17,11 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final _userNameController = TextEditingController(text: 'demo453');
   final _passwordController = TextEditingController(text: 'demo453');
-  bool _obscurePassword = true;
+  final ValueNotifier<bool> _obscurePassword = ValueNotifier<bool>(true);
 
   @override
   void dispose() {
+    _obscurePassword.dispose();
     _userNameController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -68,24 +70,29 @@ class _LoginFormState extends State<LoginForm> {
                   ),
             ),
             const SizedBox(height: 8),
-            TextField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              enabled: !isLoading,
-              decoration: InputDecoration(
-                hintText: 'Enter password',
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                    color: AppColors.textHint,
+            ValueListenableBuilder<bool>(
+              valueListenable: _obscurePassword,
+              builder: (context, obscure, _) {
+                return TextField(
+                  controller: _passwordController,
+                  obscureText: obscure,
+                  enabled: !isLoading,
+                  decoration: InputDecoration(
+                    hintText: 'Enter password',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        obscure ? Icons.visibility : Icons.visibility_off,
+                        color: AppColors.textHint,
+                      ),
+                      onPressed: () {
+                        _obscurePassword.value = !obscure;
+                      },
+                    ),
                   ),
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                ),
-              ),
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _submit(context),
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _submit(context),
+                );
+              },
             ),
             const SizedBox(height: 8),
             Align(

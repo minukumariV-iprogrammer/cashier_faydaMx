@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -206,6 +207,9 @@ class FaydaActiveDealsSection extends StatefulWidget {
 
 class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
   final ScrollController _scrollController = ScrollController();
+  final ValueNotifier<int> _scrollTick = ValueNotifier<int>(0);
+
+  void _notifyScrollChanged() => _scrollTick.value++;
 
   @override
   void initState() {
@@ -225,7 +229,7 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
         if (_scrollController.hasClients) {
           _scrollController.jumpTo(0);
         }
-        if (mounted) setState(() {});
+        _notifyScrollChanged();
       });
     }
 
@@ -257,13 +261,14 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
   }
 
   void _onScroll() {
-    if (mounted) setState(() {});
+    _notifyScrollChanged();
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _scrollTick.dispose();
     super.dispose();
   }
 
@@ -319,7 +324,10 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
     final loading = s.promotionsStatus == CreateFaydaBillPromotionsStatus.loading;
     final slate = const Color(0xFF64748B);
 
-    return Column(
+    return AnimatedBuilder(
+      animation: _scrollTick,
+      builder: (context, _) {
+        return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -403,6 +411,8 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
             ),
           ),
       ],
+    );
+      },
     );
   }
 }

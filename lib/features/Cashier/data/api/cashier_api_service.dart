@@ -9,6 +9,7 @@ import '../../../create_faydabill/data/models/gift_voucher_calculate_models.dart
 import '../../../create_faydabill/data/models/promotions_list_models.dart';
 import '../../../create_faydabill/data/models/cashier_transaction_models.dart';
 import '../../../create_faydabill/data/models/preview_summary_models.dart';
+import '../models/forgot_password_api_response_model.dart';
 import '../models/reset_password_api_response_model.dart';
 import '../models/update_platform_user_api_response_model.dart';
 import '../models/store_detail_api_response_model.dart';
@@ -17,6 +18,10 @@ import '../models/store_summary_api_response_model.dart';
 /// Contract for cashier API. Implemented by [CashierApiServiceImpl].
 abstract class ApiService {
   Future<CashierLoginResponseModel> cashierLogin(CashierLoginRequestModel request);
+
+  Future<ForgotPasswordApiResponseModel> forgotPassword(Map<String, dynamic> body);
+
+  Future<void> verifyForgotPasswordOtp(Map<String, dynamic> body);
 
   Future<ResetPasswordApiResponseModel> resetPassword(Map<String, dynamic> body);
 
@@ -83,6 +88,31 @@ class CashierApiServiceImpl implements ApiService {
       throw FormatException('Empty response from $path');
     }
     return CashierLoginResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<ForgotPasswordApiResponseModel> forgotPassword(
+    Map<String, dynamic> body,
+  ) async {
+    const path = ApiConstants.forgotPassword;
+    final response = await _dio.post<Map<String, dynamic>>(path, data: body);
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return ForgotPasswordApiResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<void> verifyForgotPasswordOtp(
+    Map<String, dynamic> body,
+  ) async {
+    const path = ApiConstants.verifyForgotPasswordOtp;
+    final response = await _dio.post<Map<String, dynamic>>(path, data: body);
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
   }
 
   @override

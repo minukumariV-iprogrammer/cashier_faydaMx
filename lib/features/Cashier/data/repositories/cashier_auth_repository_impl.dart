@@ -1,4 +1,5 @@
 import '../../domain/entities/cashier_entity.dart';
+import '../../domain/entities/forgot_password_result.dart';
 import '../../domain/repositories/cashier_auth_repository.dart';
 import '../datasource/cashier_auth_remote_ds.dart';
 import '../models/cashier_login_request_model.dart';
@@ -66,6 +67,31 @@ class CashierAuthRepositoryImpl implements CashierAuthRepository {
       phone: profile.phone.trim(),
       locationLabel: locationLabel,
       roleId: roleId,
+    );
+  }
+
+  @override
+  Future<ForgotPasswordResult> forgotPassword({
+    required String username,
+  }) async {
+    final response = await remoteDataSource.forgotPassword(username: username);
+    final otp = response.data?.otp ?? '';
+    return ForgotPasswordResult(
+      otp: otp,
+      message: response.message ?? '',
+    );
+  }
+
+  @override
+  Future<void> verifyForgotPasswordOtp({
+    required String username,
+    required String otp,
+    required String newPassword,
+  }) async {
+    await remoteDataSource.verifyForgotPasswordOtp(
+      username: username,
+      otp: otp,
+      newPassword: newPassword,
     );
   }
 }

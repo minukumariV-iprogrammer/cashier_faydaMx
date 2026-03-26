@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/navigation/app_routers.dart';
+import '../../../../core/navigation/dashboard_refresh_notifier.dart';
 import '../../../../core/utils/toast_utils.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/network/season_holder.dart';
@@ -27,6 +29,25 @@ class cashierDashBoardScreen extends StatefulWidget {
 
 class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void _onDashboardRefreshRequested() {
+    if (!mounted) return;
+    context.read<CashierDashboardBloc>().add(
+          const CashierDashboardLoadRequested(),
+        );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    dashboardRefreshNotifier.addListener(_onDashboardRefreshRequested);
+  }
+
+  @override
+  void dispose() {
+    dashboardRefreshNotifier.removeListener(_onDashboardRefreshRequested);
+    super.dispose();
+  }
 
   void _onUserIconTap() {
     _scaffoldKey.currentState?.openEndDrawer();
@@ -134,17 +155,17 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
             backgroundColor: Colors.white,
             automaticallyImplyLeading: false,
             centerTitle: false,
-            titleSpacing: 16,
+            titleSpacing: 16.w,
             title: _buildStoreHeaderTitle(state),
             actions: [
               Padding(
-                padding: const EdgeInsets.only(right: 16),
+                padding: EdgeInsets.only(right: 16.w),
                 child: CashierProfileAppBarButton(onTap: _onUserIconTap),
               ),
             ],
           ),
           body: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.w),
             child: showInitialLoader
                 ? const CashierDashboardShimmer()
                 : _buildBody(context, state, loading),
@@ -167,9 +188,9 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
           Text(
             state.errorMessage ?? 'Failed to load dashboard',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade700),
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 14.sp),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           TextButton(
             onPressed: () => context
                 .read<CashierDashboardBloc>()
@@ -198,48 +219,48 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
                   title: 'QR Voucher Balance',
                   value: gift,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 _topCard(
                   title: 'Coin Balance Today',
                   value: coins,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             Row(
               children: [
                 _statCard(
                   title: 'Total Transactions Today',
                   value: tx,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 _statCard(
                   title: 'Total Coins Issued Today',
                   value: coinsIssued,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 _statCard(
                   title: 'Total Coupons Issued Today',
                   value: coupons,
                 ),
               ],
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: 30.h),
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 50.h,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B1BE3),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
                 ),
                 onPressed: () => context.push(AppRoutes.createFaydaBill),
-                child: const Text(
+                child: Text(
                   'Create Fayda Bill  >',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
@@ -249,11 +270,11 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
           ],
         ),
         if (loading && s != null)
-          const Positioned(
+          Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: LinearProgressIndicator(minHeight: 2),
+            child: LinearProgressIndicator(minHeight: 2.h),
           ),
       ],
     );
@@ -261,26 +282,26 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
 
   Widget _topCard({required String title, required String value}) => Expanded(
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 22,
+                style: TextStyle(
+                  fontSize: 22.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6.h),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: Colors.grey.shade600,
                 ),
               ),
@@ -292,26 +313,26 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
   Widget _statCard({required String title, required String value}) =>
       Expanded(
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
           ),
           child: Column(
             children: [
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 20,
+                style: TextStyle(
+                  fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6.h),
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   color: Colors.grey.shade600,
                 ),
               ),

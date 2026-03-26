@@ -122,6 +122,8 @@ class CashierLoginBloc
           phone: authEntity.phone,
           username: authEntity.username,
           locationLabel: authEntity.locationLabel,
+          userId: authEntity.userId,
+          roleId: authEntity.roleId,
         ),
       );
 

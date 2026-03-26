@@ -60,11 +60,15 @@ class StoreFullEntity extends Equatable {
     required this.detail,
     required this.productCategories,
     required this.subcategoryMappings,
+    this.allowCoinWithoutGV = false,
   });
 
   final StoreDetailEntity detail;
   final List<ProductCategoryEntity> productCategories;
   final List<StoreSubcategoryMappingEntity> subcategoryMappings;
+
+  /// When true, "Other Benefits" tab is available without product lines; coins without GV flows.
+  final bool allowCoinWithoutGV;
 
   /// Subcategories where `categoryMasterId` matches [categoryId] (string compare).
   List<StoreSubcategoryMappingEntity> subcategoriesForCategory(int categoryId) {
@@ -75,5 +79,6 @@ class StoreFullEntity extends Equatable {
   }
 
   @override
-  List<Object?> get props => [detail, productCategories, subcategoryMappings];
+  List<Object?> get props =>
+      [detail, productCategories, subcategoryMappings, allowCoinWithoutGV];
 }

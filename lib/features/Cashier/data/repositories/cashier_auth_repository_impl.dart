@@ -32,6 +32,10 @@ class CashierAuthRepositoryImpl implements CashierAuthRepository {
       cityId = profile.userRoles.first.cityId;
     }
 
+    final roleId = profile.userRoles.isNotEmpty
+        ? profile.userRoles.first.roleId
+        : 0;
+
     var locationLabel = '';
     if (profile.userRoles.isNotEmpty) {
       final role = profile.userRoles.first;
@@ -61,6 +65,7 @@ class CashierAuthRepositoryImpl implements CashierAuthRepository {
       email: profile.email.trim(),
       phone: profile.phone.trim(),
       locationLabel: locationLabel,
+      roleId: roleId,
     );
   }
 }

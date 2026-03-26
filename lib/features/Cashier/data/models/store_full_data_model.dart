@@ -109,6 +109,7 @@ class StoreFullDataModel {
     required this.status,
     required this.productCategory,
     required this.storeSubcategoryMapping,
+    this.allowCoinWithoutGV = false,
   });
 
   final String storeName;
@@ -117,6 +118,7 @@ class StoreFullDataModel {
   final String status;
   final List<ProductCategoryModel> productCategory;
   final List<StoreSubcategoryMappingModel> storeSubcategoryMapping;
+  final bool allowCoinWithoutGV;
 
   factory StoreFullDataModel.fromJson(Map<String, dynamic> json) {
     final pc = json['productCategory'] as List<dynamic>?;
@@ -127,6 +129,7 @@ class StoreFullDataModel {
       storeDisplayId: json['storeDisplayId']?.toString() ?? '',
       storeLogo: json['storeLogo']?.toString(),
       status: json['status']?.toString() ?? '',
+      allowCoinWithoutGV: json['allowCoinWithoutGV'] == true,
       productCategory: pc
               ?.map((e) => ProductCategoryModel.fromJson(
                     e as Map<String, dynamic>,
@@ -154,5 +157,6 @@ class StoreFullDataModel {
         productCategories: productCategory.map((e) => e.toEntity()).toList(),
         subcategoryMappings:
             storeSubcategoryMapping.map((e) => e.toEntity()).toList(),
+        allowCoinWithoutGV: allowCoinWithoutGV,
       );
 }

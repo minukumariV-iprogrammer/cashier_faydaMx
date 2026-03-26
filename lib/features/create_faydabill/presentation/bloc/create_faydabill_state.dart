@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../data/models/cart_request_line.dart';
+import '../../data/models/preview_summary_models.dart';
 import '../../data/models/promotions_list_models.dart';
 import '../../domain/entities/customer_by_phone_entity.dart';
 import '../../../Cashier/domain/entities/store_full_entity.dart';
@@ -50,6 +52,17 @@ class CreateFaydaBillState extends Equatable {
     this.productMrp = '',
     this.productGv = '',
     this.productCashback = '',
+    this.giftVoucherLoading = false,
+    this.giftVoucherErrorMessage,
+    this.previewSummaryLoading = false,
+    this.previewSummary,
+    this.cartRequestLines = const [],
+    this.cashierTransactionSubmitting = false,
+    this.cashierTransactionError,
+    this.transactionSuccessMessage,
+    this.otherBenefitReason = '',
+    this.otherBenefitCashback = '',
+    this.otherBenefitInCart = false,
   });
 
   final CreateFaydaBillStoreStatus storeStatus;
@@ -85,6 +98,24 @@ class CreateFaydaBillState extends Equatable {
   final String productGv;
   final String productCashback;
 
+  final bool giftVoucherLoading;
+  final String? giftVoucherErrorMessage;
+  final bool previewSummaryLoading;
+  final PreviewSummaryDataModel? previewSummary;
+
+  /// Accumulated `cart` lines for preview-summary (survives category / subcategory changes).
+  final List<CartRequestLine> cartRequestLines;
+
+  final bool cashierTransactionSubmitting;
+  final String? cashierTransactionError;
+  /// Shown once after successful `POST /api/cashier-transactions` (e.g. bill display id).
+  final String? transactionSuccessMessage;
+
+  /// "Add Other Benefits" tab — reason + cashback (0–9999); locked when [otherBenefitInCart].
+  final String otherBenefitReason;
+  final String otherBenefitCashback;
+  final bool otherBenefitInCart;
+
   bool get hasDealSelection =>
       selectedPromotionId != null && selectedPromotionId!.isNotEmpty;
 
@@ -92,6 +123,7 @@ class CreateFaydaBillState extends Equatable {
   /// Manual path (no promotion): product name + amount; rate stays disabled/empty.
   bool get isProductDetailsFormComplete {
     if (hasDealSelection) {
+      if (giftVoucherLoading || previewSummaryLoading) return false;
       if (productQuantity < 1) return false;
       if (productName.trim().isEmpty) return false;
       if (productRate.trim().isEmpty) return false;
@@ -101,12 +133,30 @@ class CreateFaydaBillState extends Equatable {
       if (productCashback.trim().isEmpty) return false;
       return true;
     }
-    return productName.trim().isNotEmpty && productAmount.trim().isNotEmpty;
+    return productName.trim().isNotEmpty &&
+        productAmount.trim().isNotEmpty &&
+        productGv.trim().isNotEmpty &&
+        !giftVoucherLoading &&
+        !previewSummaryLoading;
   }
 
   bool get showPostPhoneSection =>
       storeStatus == CreateFaydaBillStoreStatus.success &&
       customerStatus == CreateFaydaBillCustomerStatus.success;
+
+  /// At least one product line — required before "Other Benefits" can be added.
+  bool get hasProductLinesInCart => cartRequestLines.isNotEmpty;
+
+  /// From GET `/api/store/{id}` — when true, Other Benefits tab works without products.
+  bool get allowCoinWithoutGV => storeFull?.allowCoinWithoutGV ?? false;
+
+  /// Editable other-benefit form is valid (reason + cashback 0–9999).
+  bool get isOtherBenefitFormValid {
+    if (otherBenefitReason.trim().isEmpty) return false;
+    final c = int.tryParse(otherBenefitCashback.trim());
+    if (c == null || c < 0 || c > 9999) return false;
+    return true;
+  }
 
   @override
   List<Object?> get props => [
@@ -133,6 +183,17 @@ class CreateFaydaBillState extends Equatable {
         productMrp,
         productGv,
         productCashback,
+        giftVoucherLoading,
+        giftVoucherErrorMessage,
+        previewSummaryLoading,
+        previewSummary,
+        cartRequestLines,
+        cashierTransactionSubmitting,
+        cashierTransactionError,
+        transactionSuccessMessage,
+        otherBenefitReason,
+        otherBenefitCashback,
+        otherBenefitInCart,
       ];
 
   CreateFaydaBillState copyWith({
@@ -166,6 +227,23 @@ class CreateFaydaBillState extends Equatable {
     String? productMrp,
     String? productGv,
     String? productCashback,
+    bool? giftVoucherLoading,
+    String? giftVoucherErrorMessage,
+    bool clearGiftVoucherError = false,
+    bool? previewSummaryLoading,
+    PreviewSummaryDataModel? previewSummary,
+    bool clearPreviewSummary = false,
+    List<CartRequestLine>? cartRequestLines,
+    bool clearCart = false,
+    bool? cashierTransactionSubmitting,
+    String? cashierTransactionError,
+    bool clearCashierTransactionError = false,
+    String? transactionSuccessMessage,
+    bool clearTransactionSuccessMessage = false,
+    String? otherBenefitReason,
+    String? otherBenefitCashback,
+    bool? otherBenefitInCart,
+    bool clearOtherBenefit = false,
   }) {
     return CreateFaydaBillState(
       storeStatus: storeStatus ?? this.storeStatus,
@@ -177,7 +255,7 @@ class CreateFaydaBillState extends Equatable {
           ? CreateFaydaBillCustomerStatus.idle
           : customerStatus ?? this.customerStatus,
       customerSession:
-          clearCustomer ? null : customerSession ?? this.customerSession,
+          clearCustomer ? null : (customerSession ?? this.customerSession),
       customerErrorMessage: clearCustomerError
           ? null
           : customerErrorMessage ?? this.customerErrorMessage,
@@ -206,6 +284,39 @@ class CreateFaydaBillState extends Equatable {
       productCashback: clearProductDetails
           ? ''
           : (productCashback ?? this.productCashback),
+      giftVoucherLoading: clearProductDetails
+          ? false
+          : (giftVoucherLoading ?? this.giftVoucherLoading),
+      giftVoucherErrorMessage: clearProductDetails || clearGiftVoucherError
+          ? null
+          : (giftVoucherErrorMessage ?? this.giftVoucherErrorMessage),
+      previewSummaryLoading: clearProductDetails
+          ? false
+          : (previewSummaryLoading ?? this.previewSummaryLoading),
+      previewSummary: clearCustomer || clearPreviewSummary
+          ? null
+          : (previewSummary ?? this.previewSummary),
+      cartRequestLines: clearCustomer || clearCart
+          ? const []
+          : (cartRequestLines ?? this.cartRequestLines),
+      cashierTransactionSubmitting: clearCustomer
+          ? false
+          : (cashierTransactionSubmitting ?? this.cashierTransactionSubmitting),
+      cashierTransactionError: clearCustomer || clearCashierTransactionError
+          ? null
+          : (cashierTransactionError ?? this.cashierTransactionError),
+      transactionSuccessMessage: clearCustomer || clearTransactionSuccessMessage
+          ? null
+          : (transactionSuccessMessage ?? this.transactionSuccessMessage),
+      otherBenefitReason: clearCustomer || clearOtherBenefit
+          ? ''
+          : (otherBenefitReason ?? this.otherBenefitReason),
+      otherBenefitCashback: clearCustomer || clearOtherBenefit
+          ? ''
+          : (otherBenefitCashback ?? this.otherBenefitCashback),
+      otherBenefitInCart: clearCustomer || clearOtherBenefit
+          ? false
+          : (otherBenefitInCart ?? this.otherBenefitInCart),
     );
   }
 }

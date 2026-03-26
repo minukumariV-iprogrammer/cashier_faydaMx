@@ -88,8 +88,9 @@ class _CashierAppState extends State<CashierApp> {
       );
     }
     return ScreenUtilInit(
-      designSize: kDesignSize,
+      designSize: const Size(390, 844),
       minTextAdapt: true,
+      splitScreenMode: true,
       builder: (context, child) => child!,
       child: MaterialApp.router(
         scaffoldMessengerKey: _scaffoldMessengerKey,

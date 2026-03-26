@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../di/injection.dart';
 import '../../../../../core/network/token_service.dart';
@@ -24,8 +25,8 @@ class CashierProfileAppBarButton extends StatelessWidget {
           onTap: onTap,
           behavior: HitTestBehavior.opaque,
           child: Container(
-            width: 38,
-            height: 38,
+            width: 38.r,
+            height: 38.r,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
@@ -37,15 +38,15 @@ class CashierProfileAppBarButton extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
             ),
-            padding: const EdgeInsets.all(2),
+            padding: EdgeInsets.all(2.r),
             child: CircleAvatar(
               backgroundColor: const Color(0xFFFFB74D),
               child: Text(
                 initial,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.black87,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 16.sp,
                 ),
               ),
             ),

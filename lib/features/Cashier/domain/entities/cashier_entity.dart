@@ -15,6 +15,8 @@ class CashierAuthEntity {
   final String phone;
   /// e.g. `Jamnagar, GJ` from first role `city_name` + `state_label`.
   final String locationLabel;
+  /// First `user_roles[].role_id` — profile update API.
+  final int roleId;
 
   CashierAuthEntity({
     required this.accessToken,
@@ -28,5 +30,6 @@ class CashierAuthEntity {
     required this.email,
     required this.phone,
     required this.locationLabel,
+    required this.roleId,
   });
 }

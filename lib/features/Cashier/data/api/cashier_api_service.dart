@@ -5,13 +5,25 @@ import '../models/cashier_login_request_model.dart';
 import '../models/cashier_login_response_model.dart';
 import '../models/eligible_seasons_api_response_model.dart';
 import '../../../create_faydabill/data/models/customer_by_phone_models.dart';
+import '../../../create_faydabill/data/models/gift_voucher_calculate_models.dart';
 import '../../../create_faydabill/data/models/promotions_list_models.dart';
+import '../../../create_faydabill/data/models/cashier_transaction_models.dart';
+import '../../../create_faydabill/data/models/preview_summary_models.dart';
+import '../models/reset_password_api_response_model.dart';
+import '../models/update_platform_user_api_response_model.dart';
 import '../models/store_detail_api_response_model.dart';
 import '../models/store_summary_api_response_model.dart';
 
 /// Contract for cashier API. Implemented by [CashierApiServiceImpl].
 abstract class ApiService {
   Future<CashierLoginResponseModel> cashierLogin(CashierLoginRequestModel request);
+
+  Future<ResetPasswordApiResponseModel> resetPassword(Map<String, dynamic> body);
+
+  Future<UpdatePlatformUserApiResponseModel> updatePlatformUser({
+    required String userId,
+    required Map<String, dynamic> body,
+  });
 
   Future<EligibleSeasonsApiResponseModel> getEligibleSeasons(String storeId);
 
@@ -31,6 +43,22 @@ abstract class ApiService {
     required String storeId,
     required int subCategoryId,
   });
+
+  Future<CalculateGiftVoucherApiResponseModel> calculateGiftVoucher({
+    required int subCategoryId,
+    required int mrp,
+    required String storeId,
+    required int qty,
+    String? promotionId,
+  });
+
+  Future<PreviewSummaryApiResponseModel> previewCartSummary(
+    Map<String, dynamic> body,
+  );
+
+  Future<CashierTransactionApiResponseModel> submitCashierTransaction(
+    Map<String, dynamic> body,
+  );
 }
 
 /// Dio-based implementation of [ApiService].
@@ -55,6 +83,33 @@ class CashierApiServiceImpl implements ApiService {
       throw FormatException('Empty response from $path');
     }
     return CashierLoginResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<ResetPasswordApiResponseModel> resetPassword(
+    Map<String, dynamic> body,
+  ) async {
+    const path = ApiConstants.resetPassword;
+    final response = await _dio.post<Map<String, dynamic>>(path, data: body);
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return ResetPasswordApiResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<UpdatePlatformUserApiResponseModel> updatePlatformUser({
+    required String userId,
+    required Map<String, dynamic> body,
+  }) async {
+    final path = ApiConstants.platformUser(userId);
+    final response = await _dio.patch<Map<String, dynamic>>(path, data: body);
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return UpdatePlatformUserApiResponseModel.fromJson(data);
   }
 
   @override
@@ -133,5 +188,57 @@ class CashierApiServiceImpl implements ApiService {
       throw FormatException('Empty response from $path');
     }
     return PromotionsListApiResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<CalculateGiftVoucherApiResponseModel> calculateGiftVoucher({
+    required int subCategoryId,
+    required int mrp,
+    required String storeId,
+    required int qty,
+    String? promotionId,
+  }) async {
+    const path = ApiConstants.calculateGiftVoucher;
+    final response = await _dio.post<Map<String, dynamic>>(
+      path,
+      data: <String, dynamic>{
+        'subCategoryId': subCategoryId,
+        'mrp': mrp,
+        'storeId': storeId,
+        'qty': qty,
+        'promotionId': promotionId,
+      },
+    );
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return CalculateGiftVoucherApiResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<PreviewSummaryApiResponseModel> previewCartSummary(
+    Map<String, dynamic> body,
+  ) async {
+    const path = ApiConstants.previewCartSummary;
+    final response = await _dio.post<Map<String, dynamic>>(path, data: body);
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return PreviewSummaryApiResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<CashierTransactionApiResponseModel> submitCashierTransaction(
+    Map<String, dynamic> body,
+  ) async {
+    const path = ApiConstants.cashierTransactions;
+    final response = await _dio.post<Map<String, dynamic>>(path, data: body);
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return CashierTransactionApiResponseModel.fromJson(data);
   }
 }

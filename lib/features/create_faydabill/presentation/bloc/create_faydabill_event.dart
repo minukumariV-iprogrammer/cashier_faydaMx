@@ -105,3 +105,62 @@ class CreateFaydaBillProductCashbackChanged extends CreateFaydaBillEvent {
 class CreateFaydaBillAddToCartPressed extends CreateFaydaBillEvent {
   const CreateFaydaBillAddToCartPressed();
 }
+
+/// Recalculates GV via `/api/store/calculate-gift-voucher` (quantity / debounced amount).
+class CreateFaydaBillGiftVoucherFetch extends CreateFaydaBillEvent {
+  const CreateFaydaBillGiftVoucherFetch();
+}
+
+/// Removes one cart line (by index) and refreshes preview-summary.
+class CreateFaydaBillCartLineRemoved extends CreateFaydaBillEvent {
+  const CreateFaydaBillCartLineRemoved(this.index);
+  final int index;
+  @override
+  List<Object?> get props => [index];
+}
+
+/// POST `/api/cashier-transactions` with PIN + cart.
+class CreateFaydaBillTransactionConfirmRequested extends CreateFaydaBillEvent {
+  const CreateFaydaBillTransactionConfirmRequested({
+    required this.pin,
+    required this.isBillSave,
+  });
+  final String pin;
+  final bool isBillSave;
+  @override
+  List<Object?> get props => [pin, isBillSave];
+}
+
+/// Clears [CreateFaydaBillState.transactionSuccessMessage] after UI handled it.
+class CreateFaydaBillTransactionSuccessConsumed extends CreateFaydaBillEvent {
+  const CreateFaydaBillTransactionSuccessConsumed();
+}
+
+/// Clears PIN / submit error before opening verify dialog or retrying.
+class CreateFaydaBillTransactionErrorCleared extends CreateFaydaBillEvent {
+  const CreateFaydaBillTransactionErrorCleared();
+}
+
+class CreateFaydaBillOtherBenefitReasonChanged extends CreateFaydaBillEvent {
+  const CreateFaydaBillOtherBenefitReasonChanged(this.text);
+  final String text;
+  @override
+  List<Object?> get props => [text];
+}
+
+class CreateFaydaBillOtherBenefitCashbackChanged extends CreateFaydaBillEvent {
+  const CreateFaydaBillOtherBenefitCashbackChanged(this.text);
+  final String text;
+  @override
+  List<Object?> get props => [text];
+}
+
+/// Preview-summary with [extraFaydaMXCoins] + reason; switches to product tab after success.
+class CreateFaydaBillOtherBenefitAddToCartPressed extends CreateFaydaBillEvent {
+  const CreateFaydaBillOtherBenefitAddToCartPressed();
+}
+
+/// Clears other-benefit extra coins from preview (user deleted the card in summary).
+class CreateFaydaBillOtherBenefitRemoved extends CreateFaydaBillEvent {
+  const CreateFaydaBillOtherBenefitRemoved();
+}

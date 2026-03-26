@@ -4,11 +4,24 @@ import '../models/cashier_login_request_model.dart';
 import '../models/cashier_login_response_model.dart';
 
 abstract class CashierAuthRemoteDataSource {
-
-
   Future<CashierLoginResponseModel> login(
-      CashierLoginRequestModel request,
-      );
+    CashierLoginRequestModel request,
+  );
+
+  Future<void> resetPassword({
+    required String username,
+    required String oldPassword,
+    required String newPassword,
+  });
+
+  Future<void> updatePlatformUser({
+    required String userId,
+    required String username,
+    required String fullName,
+    required String email,
+    required String phone,
+    required int roleId,
+  });
 }
 
 class CashierAuthRemoteDataSourceImpl
@@ -28,6 +41,44 @@ class CashierAuthRemoteDataSourceImpl
     } catch (e) {
       rethrow;
     }
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String username,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await handleApiCall(
+      apiService.resetPassword(<String, dynamic>{
+        'username': username,
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      }),
+    );
+  }
+
+  @override
+  Future<void> updatePlatformUser({
+    required String userId,
+    required String username,
+    required String fullName,
+    required String email,
+    required String phone,
+    required int roleId,
+  }) async {
+    await handleApiCall(
+      apiService.updatePlatformUser(
+        userId: userId,
+        body: <String, dynamic>{
+          'username': username,
+          'fullName': fullName,
+          'email': email,
+          'phone': phone,
+          'roleId': roleId,
+        },
+      ),
+    );
   }
 
   // @override

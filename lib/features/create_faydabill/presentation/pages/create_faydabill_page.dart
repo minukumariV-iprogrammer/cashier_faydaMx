@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/navigation/app_routers.dart';
+import '../../../../core/navigation/dashboard_refresh_notifier.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/store_asset_url.dart';
 import '../../../../core/utils/toast_utils.dart';
@@ -13,6 +15,8 @@ import '../bloc/create_faydabill_state.dart';
 import '../widgets/fayda_active_deals_section.dart';
 import '../widgets/fayda_bill_app_bar.dart';
 import '../widgets/fayda_bill_input_card.dart';
+import '../widgets/fayda_checkout_summary_section.dart';
+import '../widgets/fayda_other_benefits_section.dart';
 import '../widgets/fayda_product_details_section.dart';
 
 class CreateFaydaBillPage extends StatefulWidget {
@@ -39,11 +43,34 @@ class _CreateFaydaBillPageState extends State<CreateFaydaBillPage> {
   Widget build(BuildContext context) {
     return BlocConsumer<CreateFaydaBillBloc, CreateFaydaBillState>(
       listenWhen: (p, c) =>
-          c.customerStatus == CreateFaydaBillCustomerStatus.failure &&
-          c.customerErrorMessage != null &&
-          c.customerErrorMessage!.isNotEmpty,
+          (c.customerStatus == CreateFaydaBillCustomerStatus.failure &&
+              c.customerErrorMessage != null &&
+              c.customerErrorMessage!.isNotEmpty) ||
+          (c.transactionSuccessMessage != null &&
+              c.transactionSuccessMessage != p.transactionSuccessMessage),
       listener: (context, state) {
-        ToastUtils.showErrorToast(message: state.customerErrorMessage!);
+        if (state.transactionSuccessMessage != null) {
+          ToastUtils.showSuccessToast(
+            message: 'Transaction Submitted Successfully',
+          );
+          // Reload dashboard summary + store detail while the route still
+          // exists under Create Fayda Bill (push stack), then return to it.
+          dashboardRefreshNotifier.request();
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(AppRoutes.cashierDashboard);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              dashboardRefreshNotifier.request();
+            });
+          }
+          return;
+        }
+        if (state.customerStatus == CreateFaydaBillCustomerStatus.failure &&
+            state.customerErrorMessage != null &&
+            state.customerErrorMessage!.isNotEmpty) {
+          ToastUtils.showErrorToast(message: state.customerErrorMessage!);
+        }
       },
       builder: (context, state) {
         if (state.storeStatus == CreateFaydaBillStoreStatus.loading ||
@@ -68,7 +95,7 @@ class _CreateFaydaBillPageState extends State<CreateFaydaBillPage> {
               ),
               body: Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(24.w),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -76,7 +103,7 @@ class _CreateFaydaBillPageState extends State<CreateFaydaBillPage> {
                         state.storeErrorMessage ?? 'Failed to load store',
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16.h),
                       FilledButton(
                         onPressed: () => context
                             .read<CreateFaydaBillBloc>()
@@ -98,12 +125,12 @@ class _CreateFaydaBillPageState extends State<CreateFaydaBillPage> {
               onMenuPressed: () => context.pop(),
             ),
             body: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.only(bottom: 16.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -119,9 +146,9 @@ class _CreateFaydaBillPageState extends State<CreateFaydaBillPage> {
                         ),
                         if (state.customerStatus ==
                             CreateFaydaBillCustomerStatus.loading) ...[
-                          const SizedBox(height: 24),
-                          const LinearProgressIndicator(minHeight: 2),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 24.h),
+                          LinearProgressIndicator(minHeight: 2.h),
+                          SizedBox(height: 8.h),
                           Text(
                             'Looking up customer…',
                             style: TextStyle(color: Colors.grey.shade700),
@@ -132,20 +159,31 @@ class _CreateFaydaBillPageState extends State<CreateFaydaBillPage> {
                   ),
                   if (state.showPostPhoneSection) ...[
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                      padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const Divider(
                               height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16.h),
                           _MainTabs(
                             state: state,
-                            onTabChanged: (i) => context
-                                .read<CreateFaydaBillBloc>()
-                                .add(CreateFaydaBillMainTabChanged(i)),
+                            onTabChanged: (i) {
+                              if (i == 1 &&
+                                  !state.hasProductLinesInCart &&
+                                  !state.allowCoinWithoutGV) {
+                                ToastUtils.showErrorToast(
+                                  message:
+                                      'Add at least one product to cart before adding other benefits.',
+                                );
+                                return;
+                              }
+                              context
+                                  .read<CreateFaydaBillBloc>()
+                                  .add(CreateFaydaBillMainTabChanged(i));
+                            },
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16.h),
                           if (state.mainTabIndex == 0 && state.storeFull != null)
                             _CategorySection(
                               storeFull: state.storeFull!,
@@ -164,21 +202,19 @@ class _CreateFaydaBillPageState extends State<CreateFaydaBillPage> {
                       ),
                     ),
                     if (state.mainTabIndex == 0) ...[
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20.h),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
                         child: FaydaActiveDealsSection(state: state),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20.h),
                       FaydaProductDetailsSection(state: state),
-                    ] else
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                        child: Text(
-                          'Add other benefits — coming next.',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
+                    ],
+                    if (state.mainTabIndex == 1) ...[
+                      SizedBox(height: 12.h),
+                      FaydaOtherBenefitsSection(state: state),
+                    ],
+                    FaydaCheckoutSummarySection(state: state),
                   ],
                 ],
               ),
@@ -218,15 +254,15 @@ class _MainTabs extends StatelessWidget {
                         fontWeight: state.mainTabIndex == 0
                             ? FontWeight.w700
                             : FontWeight.w500,
-                        fontSize: 15,
+                        fontSize: 15.sp,
                         color: state.mainTabIndex == 0
                             ? Colors.black
                             : _inactive,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     Container(
-                      height: 3,
+                      height: 3.h,
                       color: state.mainTabIndex == 0
                           ? Colors.black
                           : Colors.transparent,
@@ -246,15 +282,15 @@ class _MainTabs extends StatelessWidget {
                         fontWeight: state.mainTabIndex == 1
                             ? FontWeight.w700
                             : FontWeight.w500,
-                        fontSize: 15,
+                        fontSize: 15.sp,
                         color: state.mainTabIndex == 1
                             ? Colors.black
                             : _inactive,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     Container(
-                      height: 3,
+                      height: 3.h,
                       color: state.mainTabIndex == 1
                           ? Colors.black
                           : Colors.transparent,
@@ -319,7 +355,7 @@ class _CategorySection extends StatelessWidget {
               height: 22,
               fit: BoxFit.contain,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Expanded(
               child: SizedBox(
                 height: 44,
@@ -338,7 +374,7 @@ class _CategorySection extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             _CategoryChipAvatar(logo: c.logo),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             Text(
                               c.name,
                               style: TextStyle(
@@ -357,9 +393,9 @@ class _CategorySection extends StatelessWidget {
             ),
           ],
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 10),
-          child: Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 10.h),
+          child: const Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8)),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -370,7 +406,7 @@ class _CategorySection extends StatelessWidget {
               height: 22,
               fit: BoxFit.contain,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Expanded(
               child: SizedBox(
                 height: 40,
@@ -446,7 +482,7 @@ class _FaydaPillChip extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             child: child,
           ),
         ),

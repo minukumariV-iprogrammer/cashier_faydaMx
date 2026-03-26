@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../core/navigation/app_routers.dart';
@@ -65,11 +66,11 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
             key: _formKey,
             child: Column(
               children: <Widget>[
-                const SizedBox(height: 40),
+                SizedBox(height: 40.h),
 
                 Container(
-                  width: 70,
-                  height: 70,
+                  width: 70.r,
+                  height: 70.r,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,
@@ -81,34 +82,35 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12.r),
                   child: Image.asset('assets/cashierrelated/faydamx.png'),
                 ),
 
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
 
-                const Text(
+                Text(
                   'Welcome to FaydaMX\nCentral',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style:
+                      TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
                 ),
 
-                const SizedBox(height: 30),
+                SizedBox(height: 30.h),
 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Login',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 24.sp,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20.h),
 
                       TextFormField(
                         controller: _usernameController,
@@ -131,21 +133,21 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                           filled: true,
                           fillColor: const Color(0x00FFD417),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                             borderSide: const BorderSide(color: Colors.black26),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                             borderSide: const BorderSide(color: Colors.black26),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                             borderSide: const BorderSide(color: Colors.black87),
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20.h),
 
                       TextFormField(
                         controller: _passwordController,
@@ -182,34 +184,34 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                           fillColor: const Color(0x00FFD417),
 
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                             borderSide: const BorderSide(color: Colors.black26),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                             borderSide: const BorderSide(color: Colors.black26),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                             borderSide: const BorderSide(color: Colors.black87),
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
 
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {},
-                          child: const Text(
+                          child: Text(
                             'Forgot password?',
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 12.sp),
                           ),
                         ),
                       ),
 
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+                      SizedBox(height: 0.2.sh),
 
 
                       BlocConsumer<CashierLoginBloc, CashierLoginState>(
@@ -244,7 +246,7 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
 
                         builder: (context, state) => SizedBox(
                             width: double.infinity,
-                            height: 48,
+                            height: 48.h,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1C252E),
@@ -265,7 +267,7 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                                   : null,
                               child: state.status == CashierLoginStatus.loading
                                   ? const CircularProgressIndicator(color: Colors.white)
-                                  : const Text('Sign In'),
+                                  : Text('Sign In', style: TextStyle(fontSize: 16.sp)),
                             ),
                           ),
                       ),

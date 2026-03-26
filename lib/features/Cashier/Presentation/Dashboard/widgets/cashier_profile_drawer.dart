@@ -1,12 +1,17 @@
 import 'dart:math' show min;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../core/models/cashier_profile_snapshot.dart';
-import '../../../../../di/injection.dart';
 import '../../../../../core/network/token_service.dart';
+import '../../../../../core/utils/toast_utils.dart';
+import '../../../../../di/injection.dart';
 
-/// Right-side profile panel: avatar, details, disabled CTAs, logout.
+import 'cashier_change_password_dialog.dart';
+import 'cashier_edit_profile_dialog.dart';
+
+/// Right-side profile panel: avatar, details, CTAs, logout.
 class CashierProfileDrawer extends StatefulWidget {
   const CashierProfileDrawer({
     super.key,
@@ -36,6 +41,43 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
     if (mounted) setState(() => _profile = p);
   }
 
+  void _openChangePassword(BuildContext context) {
+    final u = _profile?.username.trim() ?? '';
+    if (u.isEmpty) {
+      ToastUtils.showErrorToast(message: 'Username not available.');
+      return;
+    }
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => CashierChangePasswordDialog(
+        username: u,
+        onSuccess: widget.onClose,
+      ),
+    );
+  }
+
+  Future<void> _openEditProfile(BuildContext context) async {
+    final p = _profile;
+    if (p == null) return;
+    if (p.userId.isEmpty) {
+      ToastUtils.showErrorToast(
+        message: 'Please log in again to update profile.',
+      );
+      return;
+    }
+    final updated = await showDialog<CashierProfileSnapshot>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => CashierEditProfileDialog(snapshot: p),
+    );
+    if (!mounted || updated == null) return;
+    await sl<TokenService>().setCashierProfileSnapshot(updated);
+    setState(() => _profile = updated);
+    widget.onClose();
+    ToastUtils.showSuccessToast(message: 'Profile updated successfully!!');
+  }
+
   String get _initialLetter {
     final name = _profile?.fullName.trim() ?? '';
     if (name.isNotEmpty) return name[0].toUpperCase();
@@ -46,14 +88,13 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.sizeOf(context).width;
-    final drawerWidth = min(360.0, w * 0.9);
+    final drawerWidth = min(360.w, 0.9.sw);
     final p = _profile;
 
     return Drawer(
       width: drawerWidth,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(16.r)),
       ),
       elevation: 8,
       child: SafeArea(
@@ -61,11 +102,11 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+              padding: EdgeInsets.fromLTRB(8.w, 8.h, 16.w, 0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.black87),
+                  icon: Icon(Icons.close, color: Colors.black87, size: 22.sp),
                   onPressed: widget.onClose,
                   tooltip: 'Close',
                 ),
@@ -73,31 +114,31 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: Column(
                   children: [
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     _Avatar(initial: _initialLetter),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     Text(
                       p?.fullName.isNotEmpty == true ? p!.fullName : 'User',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6.h),
                     Text(
                       p?.email ?? '—',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                     LayoutBuilder(
                       builder: (context, constraints) {
                         return CustomPaint(
@@ -108,64 +149,70 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                     _InfoRow(
                       icon: Icons.apartment_outlined,
                       text: p?.locationLabel.isNotEmpty == true
                           ? p!.locationLabel
                           : '—',
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14.h),
                     _InfoRow(
                       icon: Icons.mail_outline,
                       text: p?.email ?? '—',
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14.h),
                     _InfoRow(
                       icon: Icons.phone_android,
                       text: p?.phone ?? '—',
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14.h),
                     _InfoRow(
                       icon: Icons.person_outline,
                       text: p?.username ?? '—',
                     ),
-                    const SizedBox(height: 28),
+                    SizedBox(height: 28.h),
                     SizedBox(
                       width: double.infinity,
-                      height: 48,
+                      height: 48.h,
                       child: OutlinedButton(
-                        onPressed: null,
+                        onPressed: () => _openChangePassword(context),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.black87,
                           side: const BorderSide(color: Colors.black87),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Change Password',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.sp,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     SizedBox(
                       width: double.infinity,
-                      height: 48,
+                      height: 48.h,
                       child: ElevatedButton(
-                        onPressed: null,
+                        onPressed: () => _openEditProfile(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1A237E),
-                          disabledBackgroundColor: const Color(0xFF1A237E),
-                          disabledForegroundColor: Colors.white70,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(8.r),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Edit Profile',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.sp,
+                          ),
                         ),
                       ),
                     ),
@@ -174,10 +221,10 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 16.h),
               child: SizedBox(
                 width: double.infinity,
-                height: 48,
+                height: 48.h,
                 child: ElevatedButton(
                   onPressed: widget.onLogoutPressed,
                   style: ElevatedButton.styleFrom(
@@ -185,12 +232,15 @@ class _CashierProfileDrawerState extends State<CashierProfileDrawer> {
                     foregroundColor: const Color(0xFFC62828),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Logout',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
               ),
@@ -211,8 +261,8 @@ class _Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 100,
-        height: 100,
+        width: 100.r,
+        height: 100.r,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: LinearGradient(
@@ -224,7 +274,7 @@ class _Avatar extends StatelessWidget {
             end: Alignment.centerRight,
           ),
         ),
-        padding: const EdgeInsets.all(3),
+        padding: EdgeInsets.all(3.r),
         child: Container(
           decoration: const BoxDecoration(
             color: Color(0xFFFFEB3B),
@@ -233,8 +283,8 @@ class _Avatar extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             initial,
-            style: const TextStyle(
-              fontSize: 40,
+            style: TextStyle(
+              fontSize: 40.sp,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
@@ -256,13 +306,13 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey.shade700),
-        const SizedBox(width: 12),
+        Icon(icon, size: 20.sp, color: Colors.grey.shade700),
+        SizedBox(width: 12.w),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               color: Colors.grey.shade800,
               height: 1.3,
             ),

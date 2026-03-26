@@ -17,8 +17,9 @@ class CashierUserRoleModel {
   });
 
   factory CashierUserRoleModel.fromJson(Map<String, dynamic> json) {
+    final rid = json['role_id'] ?? json['roleId'];
     return CashierUserRoleModel(
-      roleId: (json['role_id'] as num).toInt(),
+      roleId: rid is num ? rid.toInt() : int.tryParse(rid?.toString() ?? '') ?? 0,
       name: json['name'] as String,
       roleType: json['role_type'] as String,
       cityId: json['city_id'] as String? ?? json['cityId'] as String? ?? '',

@@ -11,6 +11,12 @@ class ApiConstants {
 
   static const String login = '/auth/login';
   static const String cashierLogin = '/api/auth/login';
+
+  /// POST `/api/auth/reset-password` — change password (cashier).
+  static const String resetPassword = '/api/auth/reset-password';
+
+  /// PATCH `/api/platform-users/{userId}` — update profile (fullName, email, phone, …).
+  static String platformUser(String userId) => '/api/platform-users/$userId';
   static const String logout = '/auth/logout';
   static const String refreshToken = '/auth/refresh';
   static const String dashboard = '/dashboard';
@@ -25,6 +31,15 @@ class ApiConstants {
 
   /// POST `/api/promotions/list` — live promotions for store + subcategory.
   static const String promotionsList = '/api/promotions/list';
+
+  /// POST `/api/store/calculate-gift-voucher` — GV + coins for line inputs.
+  static const String calculateGiftVoucher = '/api/store/calculate-gift-voucher';
+
+  /// POST `/api/cashier-transactions/preview-summary` — cart preview.
+  static const String previewCartSummary = '/api/cashier-transactions/preview-summary';
+
+  /// POST `/api/cashier-transactions` — submit bill (PIN + cart).
+  static const String cashierTransactions = '/api/cashier-transactions';
 
   /// GET `/api/store/{storeId}/summary` — cashier dashboard metrics.
   static String storeSummary(String storeId) => '/api/store/$storeId/summary';

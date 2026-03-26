@@ -64,9 +64,23 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
       _mrpCtrl.text = s.productMrp;
       _gvCtrl.text = s.productGv;
       _cashbackCtrl.text = s.productCashback;
-    } else if (widget.state.hasDealSelection &&
-        oldWidget.state.productAmount != widget.state.productAmount) {
-      _amountCtrl.text = widget.state.productAmount;
+    } else {
+      final s = widget.state;
+      if (oldWidget.state.productGv != s.productGv) {
+        _gvCtrl.text = s.productGv;
+      }
+      if (oldWidget.state.productCashback != s.productCashback) {
+        _cashbackCtrl.text = s.productCashback;
+      }
+      if (oldWidget.state.productRate != s.productRate) {
+        _rateCtrl.text = s.productRate;
+      }
+      if (oldWidget.state.productMrp != s.productMrp) {
+        _mrpCtrl.text = s.productMrp;
+      }
+      if (oldWidget.state.productAmount != s.productAmount) {
+        _amountCtrl.text = s.productAmount;
+      }
     }
   }
 
@@ -118,6 +132,8 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
         promotions.where((p) => !p.soldOut).toList(growable: false);
     final complete = s.isProductDetailsFormComplete;
     final hasDeal = s.hasDealSelection;
+    final amountEnabled = !hasDeal;
+    final busy = s.giftVoucherLoading || s.previewSummaryLoading;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -247,19 +263,19 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
                         const SizedBox(height: 6),
                         TextField(
                           controller: _amountCtrl,
-                          enabled: !hasDeal,
+                          enabled: amountEnabled,
                           keyboardType: TextInputType.number,
-                          inputFormatters: hasDeal
-                              ? null
-                              :  <TextInputFormatter>[
+                          inputFormatters: amountEnabled
+                              ? <TextInputFormatter>[
                                   FilteringTextInputFormatter.digitsOnly,
-                                ] ,
-                          onChanged: hasDeal
-                              ? null
-                              : (v) => context
+                                ]
+                              : null,
+                          onChanged: amountEnabled
+                              ? (v) => context
                                   .read<CreateFaydaBillBloc>()
-                                  .add(CreateFaydaBillProductAmountChanged(v)),
-                          decoration: _fieldDecoration(enabled: !hasDeal),
+                                  .add(CreateFaydaBillProductAmountChanged(v))
+                              : null,
+                          decoration: _fieldDecoration(enabled: amountEnabled),
                         ),
                       ],
                     ),
@@ -321,32 +337,75 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: FilledButton.icon(
-              onPressed: complete
-                  ? () => context
-                      .read<CreateFaydaBillBloc>()
-                      .add(const CreateFaydaBillAddToCartPressed())
-                  : null,
-              style: FilledButton.styleFrom(
-                backgroundColor: complete
-                    ? AppColors.faydaBillChipSelected
-                    : FaydaProductDetailsSection._disabledCta,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: FaydaProductDetailsSection._disabledCta,
-                disabledForegroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (s.giftVoucherErrorMessage != null &&
+                  s.giftVoucherErrorMessage!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    s.giftVoucherErrorMessage!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFFC62828),
+                    ),
+                  ),
+                ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: complete && !busy
+                      ? () => context
+                          .read<CreateFaydaBillBloc>()
+                          .add(const CreateFaydaBillAddToCartPressed())
+                      : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: complete && !busy
+                        ? AppColors.faydaBillChipSelected
+                        : FaydaProductDetailsSection._disabledCta,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        FaydaProductDetailsSection._disabledCta,
+                    disabledForegroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: busy
+                      ? const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              'Please wait…',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        )
+                      : const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Add to Cart',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.send_rounded, size: 18),
+                          ],
+                        ),
+                ),
               ),
-              // icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-              label: const Text(
-                'Add to Cart',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
+            ],
           ),
         ),
       ],

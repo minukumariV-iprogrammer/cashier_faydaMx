@@ -12,6 +12,188 @@ import '../bloc/create_faydabill_state.dart';
 /// `rgb(235, 255, 0)` — Hot Deal strip.
 const Color _kHotDealBarColor = Color(0xFFEBFF00);
 
+const Color _kDiscountGreen = Color(0xFF43A047);
+
+/// `((mrp - offer) / mrp) * 100`, e.g. `"12.5% off"`.
+String _promotionDiscountPercentOff(PromotionItemModel p) {
+  final double mrp = (p.mrpValue ?? 0).toDouble();
+  final double offer = (p.offerPriceValue ?? 0).toDouble();
+  if (mrp <= 0 || offer <= 0) return '';
+  final double discount = ((mrp - offer) / mrp) * 100;
+  if (discount <= 0) return '';
+  final rounded = double.parse(discount.toStringAsFixed(2));
+  return '$rounded% off';
+}
+
+/// Cashback line: `value` → fixed ₹; `percentage` → ₹ from offer or MRP, else `%` label.
+String _promotionCashbackDisplayText(PromotionItemModel p) {
+  final double cashbackValue = (p.cashbackValue ?? 0).toDouble();
+  if (cashbackValue <= 0) return '';
+
+  final t = p.cashbackType?.toLowerCase().trim();
+  if (t == 'value') {
+    return 'After cashback of ₹${cashbackValue.floor()}';
+  }
+  if (t == 'percentage') {
+    final double offerPrice = (p.offerPriceValue ?? 0).toDouble();
+    final double mrpValue = (p.mrpValue ?? 0).toDouble();
+    if (offerPrice > 0) {
+      final amount = (offerPrice / 100) * cashbackValue;
+      return 'After cashback of ₹${amount.floor()}';
+    }
+    if (mrpValue > 0) {
+      final amount = (mrpValue / 100) * cashbackValue;
+      return 'After cashback of ₹${amount.floor()}';
+    }
+    final isInteger = cashbackValue % 1 == 0;
+    final formatted = isInteger
+        ? cashbackValue.toInt().toString()
+        : cashbackValue.toStringAsFixed(2);
+    return 'After cashback of $formatted%';
+  }
+  // Unknown / missing type: treat as fixed rupee (legacy API).
+  return 'After cashback of ₹${cashbackValue.floor()}';
+}
+
+/// Pay / MRP / % off / cashback pill / best price — same rules as retail promotions card.
+class _DealPricingRow extends StatelessWidget {
+  const _DealPricingRow({required this.item});
+
+  final PromotionItemModel item;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasDiscount = (item.offerPriceValue ?? 0) > 0;
+    final showMrp = (item.mrpValue ?? 0) > 0;
+    final discountText = _promotionDiscountPercentOff(item);
+    final cashbackText = _promotionCashbackDisplayText(item);
+
+    const labelSmall = TextStyle(
+      fontSize: 10,
+      fontWeight: FontWeight.w500,
+      color: Colors.black87,
+    );
+    const valueStyle = TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      color: Colors.black87,
+    );
+    const strikeStyle = TextStyle(
+      fontSize: 10,
+      color: Color(0xFF757575),
+      decoration: TextDecoration.lineThrough,
+      decorationThickness: 1,
+      fontWeight: FontWeight.w500,
+    );
+    const mrpNoDiscountStyle = TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      color: Colors.black87,
+    );
+    const discountGreen = TextStyle(
+      fontSize: 10,
+      fontWeight: FontWeight.w500,
+      color: _kDiscountGreen,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 5,
+          runSpacing: 4,
+          children: [
+            if (hasDiscount)
+              RichText(
+                text: TextSpan(
+                  children: [
+                    const TextSpan(text: 'Pay ', style: labelSmall),
+                    TextSpan(
+                      text: '₹${item.offerPriceValue}',
+                      style: valueStyle,
+                    ),
+                  ],
+                ),
+              ),
+            if (showMrp)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!hasDiscount) ...[
+                    const Text('Pay', style: labelSmall),
+                    const SizedBox(width: 2),
+                  ],
+                  Text(
+                    '₹${item.mrpValue}',
+                    style: hasDiscount ? strikeStyle : mrpNoDiscountStyle,
+                  ),
+                ],
+              ),
+            if (discountText.isNotEmpty)
+              Text(discountText, style: discountGreen),
+          ],
+        ),
+        if (cashbackText.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: _kDiscountGreen.withOpacity(0.12),
+              border: Border.all(color: _kDiscountGreen),
+            ),
+            child: Text(
+              cashbackText,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF2E7D32),
+              ),
+            ),
+          ),
+        ],
+        if ((item.finalPrice ?? 0) > 0) ...[
+          const SizedBox(height: 8),
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Best Price ',
+                  style: TextStyle(
+                    color: AppColors.faydaBillChipSelected,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextSpan(
+                  text: '₹',
+                  style: TextStyle(
+                    color: AppColors.faydaBillChipSelected,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextSpan(
+                  text: '${item.finalPrice}',
+                  style: TextStyle(
+                    color: AppColors.faydaBillChipSelected,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 /// Header + horizontal deals. Count = `data.total`. Arrows sit after the title (not screen-right).
 class FaydaActiveDealsSection extends StatefulWidget {
   const FaydaActiveDealsSection({super.key, required this.state});
@@ -392,64 +574,7 @@ class _DealCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      const Text('Pay '),
-                      Text(
-                        _rupees(item.offerPriceValue),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      if (item.mrpValue != null) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          _rupees(item.mrpValue),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  if (item.cashbackValue != null && item.cashbackValue! > 0) ...[
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: const Color(0xFF43A047)),
-                      ),
-                      child: Text(
-                        'After Cashback of ${_rupees(item.cashbackValue)}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF2E7D32),
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 4),
-                  Text(
-                    'Best Price ${_rupees(item.finalPrice)}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.faydaBillChipSelected,
-                    ),
-                  ),
+                  _DealPricingRow(item: item),
                   if (item.soldOut) ...[
                     const SizedBox(height: 4),
                     const Text(
@@ -509,10 +634,5 @@ class _DealCard extends StatelessWidget {
       'Dec'
     ];
     return '${d.day.toString().padLeft(2, '0')} ${m[d.month - 1]}';
-  }
-
-  static String _rupees(int? v) {
-    if (v == null) return '₹0';
-    return '₹$v';
   }
 }

@@ -12,6 +12,9 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String cashierLogin = '/api/auth/login';
 
+  /// POST `/api/masters/app-version` — app init / update & maintenance status.
+  static const String appVersion = '/api/masters/app-version';
+
   /// POST `/api/auth/forgot-password` — request OTP for password reset.
   static const String forgotPassword = '/api/auth/forgot-password';
 

@@ -1,11 +1,18 @@
-import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/navigation/app_routers.dart';
+import '../../../../core/security/security_service.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/network/token_service.dart';
+import '../../../onboarding/domain/app_version_status.dart';
+import '../../../onboarding/presentation/cubit/app_init_cubit.dart';
+import '../../../onboarding/presentation/widgets/update_route_extra.dart';
 
 class cashierSplashScreen extends StatefulWidget {
   const cashierSplashScreen({super.key});
@@ -15,24 +22,103 @@ class cashierSplashScreen extends StatefulWidget {
 }
 
 class _cashierSplashScreenState extends State<cashierSplashScreen> {
-  final ValueNotifier<int> _remainingSeconds = ValueNotifier<int>(2);
-  Timer? _timer;
+  bool _isDeviceCompromised = false;
+  String _compromisedMessage = '';
+  bool _hasNavigated = false;
 
   @override
   void initState() {
     super.initState();
-    _navigate();
-    _startTimer();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runStartupSequence());
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _remainingSeconds.dispose();
-    super.dispose();
+  /// Waits for [AppInitCubit] (started in router with `..getAppInitData()`).
+  Future<AppInitState> _waitForAppInitResolved(AppInitCubit cubit) async {
+    final current = cubit.state;
+    if (current.status == AppInitLoadStatus.success ||
+        current.status == AppInitLoadStatus.failure) {
+      return current;
+    }
+    return cubit.stream.firstWhere(
+      (s) =>
+          s.status == AppInitLoadStatus.success ||
+          s.status == AppInitLoadStatus.failure,
+    );
   }
 
-  Future<void> _navigate() async {
+  Future<void> _runStartupSequence() async {
+    final security = sl<SecurityService>();
+    if (security.shouldBlockOnSplash) {
+      setState(() {
+        _isDeviceCompromised = true;
+        _compromisedMessage = security.getSecurityStatusMessage();
+      });
+      return;
+    }
+
+    final cubit = context.read<AppInitCubit>();
+    final state = await _waitForAppInitResolved(cubit);
+    if (!mounted || _hasNavigated) return;
+
+    if (state.status == AppInitLoadStatus.failure) {
+      if (state.httpStatusCode == 503) {
+        _hasNavigated = true;
+        context.go(AppRoutes.downtime);
+        return;
+      }
+      await _navigateToNextScreen();
+      return;
+    }
+
+    final entity = state.data;
+    if (entity != null) {
+      final status = entity.statusRaw.trim().toUpperCase();
+      if (status == AppVersionStatus.maintenanceMode) {
+        _hasNavigated = true;
+        context.go(AppRoutes.downtime);
+        return;
+      }
+      final info = await PackageInfo.fromPlatform();
+      final fallbackStoreUrl = Platform.isAndroid
+          ? 'https://play.google.com/store/apps/details?id=${info.packageName}'
+          : 'https://apps.apple.com';
+      final storeUrl = (entity.storeUrl != null && entity.storeUrl!.isNotEmpty)
+          ? entity.storeUrl!
+          : fallbackStoreUrl;
+
+      if (status != AppVersionStatus.forceUpdate) {
+        _hasNavigated = true;
+        context.go(
+          AppRoutes.update,
+          extra: {
+            'isForceUpdate': true,
+            'storeUrl': storeUrl,
+            'skipAllowed': false,
+          },
+        );
+        return;
+      }
+      if (status != AppVersionStatus.softUpdate) {
+        _hasNavigated = true;
+        context.go(
+          AppRoutes.update,
+          extra: {
+            'isForceUpdate': false,
+            'storeUrl': storeUrl,
+            'skipAllowed': true,
+          },
+        );
+        return;
+      }
+    }
+
+    await _navigateToNextScreen();
+  }
+
+  Future<void> _navigateToNextScreen() async {
+    if (!mounted || _hasNavigated) return;
+    _hasNavigated = true;
+
     final token = await sl<TokenService>().getAccessToken();
     final isLoggedIn = token != null && token.isNotEmpty;
 
@@ -45,88 +131,106 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
     }
   }
 
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingSeconds.value == 0) {
-        timer.cancel();
-        _navigate();
-      } else {
-        _remainingSeconds.value = _remainingSeconds.value - 1;
-      }
-    });
-  }
-
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: const Text("Splash Screen for Cashier"),
-        ),
-        body: SizedBox(
-          width: double.infinity,
-          height: double.infinity,
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFFFFAEB),
-                  Color(0x00FFD417),
-                ],
-              ),
-            ),
+  Widget build(BuildContext context) {
+    if (_isDeviceCompromised) {
+      return Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 80),
-                Container(
-                  width: 95,
-                  height: 95,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Image.asset(
-                    'assets/cashierrelated/faydamx.png',
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'FaydaMX Central',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 70),
-                SizedBox(
-                  width: 300,
-                  height: 300,
-                  child: Image.asset(
-                    'assets/cashierrelated/cashierSplash.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                ValueListenableBuilder<int>(
-                  valueListenable: _remainingSeconds,
-                  builder: (context, sec, _) {
-                    return Text(
-                      'Redirecting in $sec s',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black54,
+                const SizedBox(height: 24),
+                const Icon(Icons.security, size: 56, color: Color(0xFFB71C1C)),
+                const SizedBox(height: 16),
+                Text(
+                  'Security Alert',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
-                    );
-                  },
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _compromisedMessage,
+                  style: const TextStyle(fontSize: 15, height: 1.4),
+                  textAlign: TextAlign.center,
                 ),
                 const Spacer(),
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => SystemNavigator.pop(),
+                    child: const Text('Close App'),
+                  ),
+                ),
               ],
             ),
           ),
         ),
       );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text('Splash Screen for Cashier'),
+      ),
+      body: SizedBox(
+        width: double.infinity,
+        height: double.infinity,
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFFFFAEB),
+                Color(0x00FFD417),
+              ],
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 80),
+              Container(
+                width: 95,
+                height: 95,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Image.asset(
+                  'assets/cashierrelated/faydamx.png',
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'FaydaMX Central',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 70),
+              SizedBox(
+                width: 300,
+                height: 300,
+                child: Image.asset(
+                  'assets/cashierrelated/cashierSplash.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 30),
+              const CircularProgressIndicator(),
+              const Spacer(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

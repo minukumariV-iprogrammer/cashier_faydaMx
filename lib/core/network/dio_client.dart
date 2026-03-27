@@ -9,6 +9,7 @@ import 'interceptors/custom_header_interceptor.dart';
 import 'interceptors/encryption_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
 import 'interceptors/logging_interceptor.dart';
+import 'interceptors/maintenance_interceptor.dart';
 import 'interceptors/retry_interceptor.dart';
 
 /// Fallback base URL when none is set (e.g. before flavor init).
@@ -56,13 +57,15 @@ Dio createDio({
       EncryptionInterceptor(
         encryptionService,
         excludedPaths: const [
-        //  'masters/app-version',
+          'api/masters/app-version',
+          'masters/app-version',
         ],
       ),
     CurlLoggerInterceptor(printOnSuccess: true),
     if (FlavorConfig.isDevelopment() || FlavorConfig.isStaging())
       LoggingInterceptor(),
     ErrorInterceptor(),
+    MaintenanceInterceptor(),
     RetryInterceptor(dio: dio, maxRetries: 1),
   ];
 

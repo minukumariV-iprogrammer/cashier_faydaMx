@@ -6,11 +6,14 @@ import 'package:go_router/go_router.dart';
 
 import 'core/constants/api_constants.dart';
 import 'core/constants/flavor_constants.dart';
+import 'core/navigation/app_routers.dart';
+import 'core/network/maintenance_navigator.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/screen_utils.dart';
 import 'core/utils/toast_utils.dart';
 import 'di/injection.dart';
+import 'core/security/security_service.dart';
 
 /// Runs the app. Call after FlavorConfig.init() from main_dev.dart, main_stage.dart, main_prod.dart.
 void runCashierApp() {
@@ -36,6 +39,9 @@ class _CashierAppState extends State<CashierApp> {
     super.initState();
     ToastUtils.scaffoldMessengerKey = _scaffoldMessengerKey;
     _router = AppRouter.create();
+    MaintenanceNavigator.onServiceUnavailable = () {
+      _router.go(AppRoutes.downtime);
+    };
     _init();
   }
 
@@ -54,6 +60,7 @@ class _CashierAppState extends State<CashierApp> {
         ),
       );
       await initDependencies();
+      await sl<SecurityService>().initialize();
       if (mounted) _bootstrapReady.value = true;
     } catch (e, st) {
       if (mounted) {

@@ -11,6 +11,10 @@ import '../../features/Cashier/Presentation/ForgotPassword/Screens/cashier_forgo
 import '../../features/Cashier/Presentation/Login/Screens/cashier_LoginScreen.dart';
 import '../../features/Cashier/Presentation/ResetPassword/Screens/cashier_reset_password_screen.dart';
 import '../../features/Cashier/Presentation/ResetPassword/cashier_reset_password_args.dart';
+import '../../features/onboarding/presentation/cubit/app_init_cubit.dart';
+import '../../features/onboarding/presentation/widgets/downtime_screen.dart';
+import '../../features/onboarding/presentation/widgets/update_route_extra.dart';
+import '../../features/onboarding/presentation/widgets/update_screen.dart';
 import '../../features/Cashier/Presentation/Splash/cashier_SplashScreen.dart';
 import '../../features/Cashier/Presentation/Login/Bloc/login_bloc.dart';
 import '../../features/create_faydabill/presentation/bloc/create_faydabill_bloc.dart';
@@ -24,15 +28,29 @@ class AppRouter {
 
   static final _rootKey = GlobalKey<NavigatorState>();
 
+  static GoRouter? _instance;
+
+  /// Current router (set after [create]). Used by maintenance interceptor hook.
+  static GoRouter get router {
+    final r = _instance;
+    if (r == null) {
+      throw StateError('AppRouter.create() has not been called yet.');
+    }
+    return r;
+  }
+
   static GoRouter create() {
-    return GoRouter(
+    final router = GoRouter(
       navigatorKey: _rootKey,
       initialLocation: AppRoutes.cashierSplash,
       routes: [
         GoRoute(
           path: AppRoutes.cashierSplash,
           name: 'splash',
-          builder: (_, __) => const cashierSplashScreen(),
+          builder: (_, __) => BlocProvider<AppInitCubit>(
+            create: (_) => sl<AppInitCubit>()..getAppInitData(),
+            child: const cashierSplashScreen(),
+          ),
         ),
         GoRoute(
           path: AppRoutes.cashierLoginScreen,
@@ -62,6 +80,24 @@ class AppRouter {
           },
         ),
         GoRoute(
+          path: AppRoutes.update,
+          name: AppRoutes.update,
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+
+            return UpdateScreen(
+              isForceUpdate: extra?['isForceUpdate'] ?? false,
+              storeUrl: extra?['storeUrl'] ?? '',
+              skipAllowed: extra?['skipAllowed'] ?? false, window: '',
+            );
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.downtime,
+          name: 'downtime',
+          builder: (_, __) => const DowntimeScreen(),
+        ),
+        GoRoute(
           path: AppRoutes.cashierDashboard,
           name: 'dashboard',
           builder: (_, __) => BlocProvider<CashierDashboardBloc>(
@@ -86,6 +122,8 @@ class AppRouter {
         final isLogin = location == AppRoutes.cashierLoginScreen;
         final isForgotPassword = location == AppRoutes.cashierForgotPassword;
         final isResetPassword = location == AppRoutes.cashierResetPassword;
+        final isUpdate = location == AppRoutes.update;
+        final isDowntime = location == AppRoutes.downtime;
 
         final token = await sl<TokenService>().getAccessToken();
         final isLoggedIn = token != null && token.isNotEmpty;
@@ -98,11 +136,15 @@ class AppRouter {
         if (!isLoggedIn &&
             !isLogin &&
             !isForgotPassword &&
-            !isResetPassword) {
+            !isResetPassword &&
+            !isUpdate &&
+            !isDowntime) {
           return AppRoutes.cashierLoginScreen;
         }
         return null;
       },
     );
+    _instance = router;
+    return router;
   }
 }

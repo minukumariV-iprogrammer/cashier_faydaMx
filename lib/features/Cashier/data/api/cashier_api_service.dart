@@ -9,6 +9,7 @@ import '../../../create_faydabill/data/models/gift_voucher_calculate_models.dart
 import '../../../create_faydabill/data/models/promotions_list_models.dart';
 import '../../../create_faydabill/data/models/cashier_transaction_models.dart';
 import '../../../create_faydabill/data/models/preview_summary_models.dart';
+import '../../../onboarding/data/models/app_init_models.dart';
 import '../models/forgot_password_api_response_model.dart';
 import '../models/reset_password_api_response_model.dart';
 import '../models/update_platform_user_api_response_model.dart';
@@ -20,6 +21,8 @@ abstract class ApiService {
   Future<CashierLoginResponseModel> cashierLogin(CashierLoginRequestModel request);
 
   Future<ForgotPasswordApiResponseModel> forgotPassword(Map<String, dynamic> body);
+
+  Future<AppInitResponseModel> getAppInit(AppInitRequestModel request);
 
   Future<void> verifyForgotPasswordOtp(Map<String, dynamic> body);
 
@@ -101,6 +104,20 @@ class CashierApiServiceImpl implements ApiService {
       throw FormatException('Empty response from $path');
     }
     return ForgotPasswordApiResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<AppInitResponseModel> getAppInit(AppInitRequestModel request) async {
+    const path = ApiConstants.appVersion;
+    final response = await _dio.post<Map<String, dynamic>>(
+      path,
+      data: request.toJson(),
+    );
+    final data = response.data;
+    if (data == null) {
+      throw FormatException('Empty response from $path');
+    }
+    return AppInitResponseModel.fromJson(data);
   }
 
   @override

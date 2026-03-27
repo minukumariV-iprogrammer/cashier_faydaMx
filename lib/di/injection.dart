@@ -5,11 +5,15 @@ import 'package:get_it/get_it.dart';
 import '../core/constants/api_constants.dart';
 import '../core/encryption/encryption_service.dart';
 import '../core/network/dio_client.dart';
+import '../core/security/security_service.dart';
 import '../core/network/season_holder.dart';
 import '../core/network/tenant_holder.dart';
 import '../core/network/token_holder.dart';
 import '../core/network/token_service.dart';
+import '../features/Cashier/data/api/cashier_api_service.dart';
 import '../features/Cashier/di/cashier_di.dart';
+import '../features/onboarding/data/app_init_repository.dart';
+import '../features/onboarding/presentation/cubit/app_init_cubit.dart';
 import '../features/create_faydabill/di/create_faydabill_di.dart';
 import '../features/auth/data/datasources/auth_local_datasource.dart';
 import '../features/auth/data/datasources/auth_remote_datasource.dart';
@@ -29,6 +33,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<EncryptionService>(
     () => EncryptionService(),
   );
+  sl.registerLazySingleton<SecurityService>(() => SecurityService());
   sl.registerLazySingleton<TokenHolder>(() => TokenHolder());
   sl.registerLazySingleton<SeasonHolder>(() => SeasonHolder());
   sl.registerLazySingleton<TenantHolder>(() => TenantHolder());
@@ -76,6 +81,13 @@ Future<void> initDependencies() async {
   // Cashier feature (splash, login, dashboard)
   initCashierDi(sl);
   initCreateFaydaBillDi(sl);
+
+  sl.registerLazySingleton<AppInitRepository>(
+    () => AppInitRepositoryImpl(sl<ApiService>()),
+  );
+  sl.registerFactory<AppInitCubit>(
+    () => AppInitCubit(sl<AppInitRepository>()),
+  );
 
   // Sync cashier token into TokenHolder so Dio AuthInterceptor uses it
   final cashierToken = await sl<TokenService>().getAccessToken();

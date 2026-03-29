@@ -6,6 +6,7 @@ import '../../di/injection.dart';
 import '../../features/Cashier/Presentation/Dashboard/Bloc/cashier_dashboard_bloc.dart';
 import '../../features/Cashier/Presentation/Dashboard/Bloc/cashier_dashboard_event.dart';
 import '../../features/Cashier/Presentation/Dashboard/cashier_Dashboard_Screen.dart';
+import '../../features/Cashier/Presentation/Dashboard/fcm_cubit/fcm_cubit.dart';
 import '../../features/Cashier/Presentation/ForgotPassword/Bloc/forgot_password_bloc.dart';
 import '../../features/Cashier/Presentation/ForgotPassword/Screens/cashier_forgot_password_screen.dart';
 import '../../features/Cashier/Presentation/Login/Screens/cashier_LoginScreen.dart';
@@ -100,9 +101,16 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.cashierDashboard,
           name: 'dashboard',
-          builder: (_, __) => BlocProvider<CashierDashboardBloc>(
-            create: (_) => sl<CashierDashboardBloc>()
-              ..add(const CashierDashboardLoadRequested()),
+          builder: (_, __) => MultiBlocProvider(
+            providers: [
+              BlocProvider<CashierDashboardBloc>(
+                create: (_) => sl<CashierDashboardBloc>()
+                  ..add(const CashierDashboardLoadRequested()),
+              ),
+              BlocProvider<FcmCubit>(
+                create: (_) => sl<FcmCubit>(),
+              ),
+            ],
             child: const cashierDashBoardScreen(),
           ),
         ),

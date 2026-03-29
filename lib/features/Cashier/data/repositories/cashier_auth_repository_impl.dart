@@ -1,3 +1,8 @@
+import 'dart:io';
+
+import '../../../../core/constants/flavor_constants.dart';
+import '../../../../core/push/fcm_service.dart';
+import '../../../../di/injection.dart';
 import '../../domain/entities/cashier_entity.dart';
 import '../../domain/entities/forgot_password_result.dart';
 import '../../domain/repositories/cashier_auth_repository.dart';
@@ -14,10 +19,14 @@ class CashierAuthRepositoryImpl implements CashierAuthRepository {
     required String username,
     required String password,
   }) async {
+    final fcmToken = await sl<FcmService>().getToken();
     final request = CashierLoginRequestModel(
       username: username,
       password: password,
       portal: 'merchant',
+      projectId: FlavorConfig.instance.loginProjectId,
+      fcmToken: fcmToken ?? '',
+      platform: Platform.isAndroid ? 'android' : 'ios',
     );
 
     final response = await remoteDataSource.login(request);

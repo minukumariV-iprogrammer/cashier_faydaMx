@@ -6,6 +6,7 @@ import '../../../../../core/network/tenant_holder.dart';
 import '../../../../../core/network/token_holder.dart';
 import '../../../../../core/network/token_service.dart';
 import '../../../../../core/models/cashier_profile_snapshot.dart';
+import '../../../../../core/push/fcm_service.dart';
 import '../../../../../di/injection.dart';
 import '../../../domain/usecases/cashier_login_usecase.dart';
 import '../../../domain/usecases/fetch_active_season_usecase.dart';
@@ -132,6 +133,13 @@ class CashierLoginBloc
       );
       await tokenService.setSeasonId(seasonId);
       seasonHolder.setSeasonId(seasonId);
+
+      // Login body already sent `fcmToken` to BE — cache it so we do not POST
+      // `/api/auth/fcm-token` again until the token rotates or mismatches.
+      final fcm = await sl<FcmService>().getToken();
+      if (fcm != null && fcm.isNotEmpty) {
+        await tokenService.setCachedFcmToken(fcm);
+      }
 
       emit(state.copyWith(status: CashierLoginStatus.success));
     } on InputValidationException catch (e) {

@@ -13,6 +13,7 @@ import 'core/theme/app_theme.dart';
 import 'core/utils/screen_utils.dart';
 import 'core/utils/toast_utils.dart';
 import 'di/injection.dart';
+import 'core/push/fcm_service.dart';
 import 'core/security/security_service.dart';
 
 /// Runs the app. Call after FlavorConfig.init() from main_dev.dart, main_stage.dart, main_prod.dart.
@@ -60,6 +61,7 @@ class _CashierAppState extends State<CashierApp> {
         ),
       );
       await initDependencies();
+      await sl<FcmService>().initialize();
       await sl<SecurityService>().initialize();
       if (mounted) _bootstrapReady.value = true;
     } catch (e, st) {

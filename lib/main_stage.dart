@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'app.dart';
 import 'core/constants/flavor_constants.dart';
+import 'core/firebase/firebase_bootstrap.dart';
 
 /// Stage entry point. Select "main_stage.dart" in run configuration.
 void main() async {
@@ -15,5 +16,6 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
+  await ensureFirebaseInitialized();
   runCashierApp();
 }

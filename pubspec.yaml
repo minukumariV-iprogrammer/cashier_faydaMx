@@ -49,6 +49,8 @@ dependencies:
       ref: add-namespace
   package_info_plus: ^8.1.2
   url_launcher: ^6.3.1
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.1.6
 
 dev_dependencies:
   flutter_test:

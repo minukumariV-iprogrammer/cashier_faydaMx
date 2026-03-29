@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "53347585017",
+    "project_id": "cashier-app-8bf9f",
+    "storage_bucket": "cashier-app-8bf9f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:53347585017:android:c7d014ab6aa6cf578e8b28",
+        "android_client_info": {
+          "package_name": "com.example.cashier_app.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_jRuQKamzswH7oNKdCaQz5jxf1obuL7A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

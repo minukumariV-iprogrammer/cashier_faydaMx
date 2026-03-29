@@ -98,7 +98,7 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
         );
         return;
       }
-      if (status != AppVersionStatus.softUpdate) {
+      if (status == AppVersionStatus.softUpdate) {
         _hasNavigated = true;
         context.go(
           AppRoutes.update,

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'app.dart';
 import 'core/constants/flavor_constants.dart';
+import 'core/firebase/firebase_bootstrap.dart';
 
 /// Production entry point. Select "main_prod.dart" in run configuration.
 void main() async {
@@ -15,5 +16,6 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
+  await ensureFirebaseInitialized();
   runCashierApp();
 }

@@ -12,6 +12,10 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String cashierLogin = '/api/auth/login';
 
+  /// POST body: `projectId`, `fcmToken`, `platform` — call when FCM token rotates (logged-in users).
+  /// Adjust path if your backend contract differs.
+  static const String registerFcmToken = '/api/auth/fcm-token';
+
   /// POST `/api/masters/app-version` — app init / update & maintenance status.
   static const String appVersion = '/api/masters/app-version';
 

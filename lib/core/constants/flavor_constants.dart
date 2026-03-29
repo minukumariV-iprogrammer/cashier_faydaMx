@@ -10,10 +10,14 @@ class FlavorConfig {
   final String apiBaseUrl;
   final bool addEncryption;
 
+  /// Sent on cashier login as `projectId` (backend / CMS project key).
+  final String loginProjectId;
+
   FlavorConfig._internal({
     required this.flavor,
     required this.apiBaseUrl,
     required this.addEncryption,
+    required this.loginProjectId,
   });
 
   static FlavorConfig? _instance;
@@ -26,6 +30,7 @@ class FlavorConfig {
             flavor: Flavor.dev,
             apiBaseUrl: 'https://fmx-api.iprotec.in',
             addEncryption: false,
+            loginProjectId: 'cashier-debug',
           );
           break;
         case Flavor.stage:
@@ -33,6 +38,7 @@ class FlavorConfig {
             flavor: Flavor.stage,
             apiBaseUrl: 'https://stage-api.faydamx.com',
             addEncryption: true,
+            loginProjectId: 'cashier-staging',
           );
           break;
         case Flavor.prod:
@@ -40,6 +46,7 @@ class FlavorConfig {
             flavor: Flavor.prod,
             apiBaseUrl: 'https://api.faydamx.com',
             addEncryption: true,
+            loginProjectId: 'cashier-prod',
           );
           break;
       }

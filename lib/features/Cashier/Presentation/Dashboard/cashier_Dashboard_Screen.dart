@@ -19,6 +19,7 @@ import 'widgets/cashier_dashboard_shimmer.dart';
 import 'widgets/cashier_profile_app_bar_button.dart';
 import 'widgets/cashier_profile_drawer.dart';
 import 'widgets/cashier_store_header_pill.dart';
+import 'fcm_cubit/fcm_cubit.dart';
 
 class cashierDashBoardScreen extends StatefulWidget {
   const cashierDashBoardScreen({super.key});
@@ -27,8 +28,14 @@ class cashierDashBoardScreen extends StatefulWidget {
   State<cashierDashBoardScreen> createState() => _cashierDashBoardScreenState();
 }
 
-class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
+class _cashierDashBoardScreenState extends State<cashierDashBoardScreen>
+    with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void _syncFcmToken() {
+    if (!mounted) return;
+    context.read<FcmCubit>().listenForTokenChanges();
+  }
 
   void _onDashboardRefreshRequested() {
     if (!mounted) return;
@@ -40,13 +47,23 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     dashboardRefreshNotifier.addListener(_onDashboardRefreshRequested);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncFcmToken());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     dashboardRefreshNotifier.removeListener(_onDashboardRefreshRequested);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _syncFcmToken();
+    }
   }
 
   void _onUserIconTap() {

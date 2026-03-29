@@ -22,6 +22,10 @@ abstract class TokenService {
   Future<void> setCashierProfileSnapshot(CashierProfileSnapshot snapshot);
   Future<CashierProfileSnapshot?> getCashierProfileSnapshot();
   Future<void> clearTokens();
+
+  /// Last FCM token persisted after successful backend sync (rotation / dashboard).
+  Future<void> setCachedFcmToken(String token);
+  Future<String?> getCachedFcmToken();
 }
 
 const String _keyAccessToken = 'cashier_access_token';
@@ -30,6 +34,7 @@ const String _keyStoreId = 'cashier_store_id';
 const String _keyTenantId = 'cashier_tenant_id';
 const String _keySeasonId = 'cashier_season_id';
 const String _keyProfileSnapshot = 'cashier_profile_snapshot';
+const String _keyCachedFcmToken = 'cashier_cached_fcm_token';
 
 class TokenServiceImpl implements TokenService {
   TokenServiceImpl(this._storage);
@@ -104,5 +109,14 @@ class TokenServiceImpl implements TokenService {
     await _storage.delete(key: _keyTenantId);
     await _storage.delete(key: _keySeasonId);
     await _storage.delete(key: _keyProfileSnapshot);
+    await _storage.delete(key: _keyCachedFcmToken);
   }
+
+  @override
+  Future<void> setCachedFcmToken(String token) async {
+    await _storage.write(key: _keyCachedFcmToken, value: token);
+  }
+
+  @override
+  Future<String?> getCachedFcmToken() => _storage.read(key: _keyCachedFcmToken);
 }

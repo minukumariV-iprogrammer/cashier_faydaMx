@@ -5,6 +5,8 @@ import 'package:get_it/get_it.dart';
 import '../core/constants/api_constants.dart';
 import '../core/encryption/encryption_service.dart';
 import '../core/network/dio_client.dart';
+import '../core/push/fcm_service.dart';
+import '../core/push/fcm_token_registrar.dart';
 import '../core/security/security_service.dart';
 import '../core/network/season_holder.dart';
 import '../core/network/tenant_holder.dart';
@@ -81,6 +83,13 @@ Future<void> initDependencies() async {
   // Cashier feature (splash, login, dashboard)
   initCashierDi(sl);
   initCreateFaydaBillDi(sl);
+
+  sl.registerLazySingleton<FcmTokenRegistrar>(
+    () => CashierFcmTokenRegistrar(sl<ApiService>(), sl<TokenService>()),
+  );
+  sl.registerLazySingleton<FcmService>(
+    () => FcmService(sl<FcmTokenRegistrar>()),
+  );
 
   sl.registerLazySingleton<AppInitRepository>(
     () => AppInitRepositoryImpl(sl<ApiService>()),

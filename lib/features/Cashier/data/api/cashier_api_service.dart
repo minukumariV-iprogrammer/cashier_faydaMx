@@ -20,6 +20,9 @@ import '../models/store_summary_api_response_model.dart';
 abstract class ApiService {
   Future<CashierLoginResponseModel> cashierLogin(CashierLoginRequestModel request);
 
+  /// Persist FCM token after rotation (requires auth).
+  Future<void> registerFcmToken(Map<String, dynamic> body);
+
   Future<ForgotPasswordApiResponseModel> forgotPassword(Map<String, dynamic> body);
 
   Future<AppInitResponseModel> getAppInit(AppInitRequestModel request);
@@ -91,6 +94,15 @@ class CashierApiServiceImpl implements ApiService {
       throw FormatException('Empty response from $path');
     }
     return CashierLoginResponseModel.fromJson(data);
+  }
+
+  @override
+  Future<void> registerFcmToken(Map<String, dynamic> body) async {
+    const path = ApiConstants.registerFcmToken;
+    final response = await _dio.post<Map<String, dynamic>>(path, data: body);
+    if (response.data == null) {
+      throw FormatException('Empty response from $path');
+    }
   }
 
   @override

@@ -2,10 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
+import '../../../../core/push/fcm_service.dart';
 import '../../../../core/network/season_holder.dart';
 import '../../../../core/network/tenant_holder.dart';
 import '../../../../core/network/token_service.dart';
 import '../Presentation/Dashboard/Bloc/cashier_dashboard_bloc.dart';
+import '../Presentation/Dashboard/fcm_cubit/fcm_cubit.dart';
 import '../Presentation/ForgotPassword/Bloc/forgot_password_bloc.dart';
 import '../Presentation/Login/Bloc/login_bloc.dart';
 import '../data/api/cashier_api_service.dart';
@@ -93,5 +95,8 @@ void initCashierDi(GetIt sl) {
       getStoreDetailUseCase: sl<GetStoreDetailUseCase>(),
       tokenService: sl<TokenService>(),
     ),
+  );
+  sl.registerFactory<FcmCubit>(
+    () => FcmCubit(sl<FcmService>()),
   );
 }

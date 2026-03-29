@@ -110,6 +110,7 @@ class StoreFullDataModel {
     required this.productCategory,
     required this.storeSubcategoryMapping,
     this.allowCoinWithoutGV = false,
+    this.sessionTimeoutMinutes,
   });
 
   final String storeName;
@@ -119,6 +120,8 @@ class StoreFullDataModel {
   final List<ProductCategoryModel> productCategory;
   final List<StoreSubcategoryMappingModel> storeSubcategoryMapping;
   final bool allowCoinWithoutGV;
+  /// Idle logout duration from API `sessionTimeout` (minutes).
+  final int? sessionTimeoutMinutes;
 
   factory StoreFullDataModel.fromJson(Map<String, dynamic> json) {
     final pc = json['productCategory'] as List<dynamic>?;
@@ -129,6 +132,7 @@ class StoreFullDataModel {
       storeDisplayId: json['storeDisplayId']?.toString() ?? '',
       storeLogo: json['storeLogo']?.toString(),
       status: json['status']?.toString() ?? '',
+      sessionTimeoutMinutes: 2,//(json['sessionTimeout'] as num?)?.toInt(),
       allowCoinWithoutGV: json['allowCoinWithoutGV'] == true,
       productCategory: pc
               ?.map((e) => ProductCategoryModel.fromJson(
@@ -158,5 +162,6 @@ class StoreFullDataModel {
         subcategoryMappings:
             storeSubcategoryMapping.map((e) => e.toEntity()).toList(),
         allowCoinWithoutGV: allowCoinWithoutGV,
+        sessionTimeoutMinutes: sessionTimeoutMinutes,
       );
 }

@@ -12,6 +12,7 @@ import '../core/network/season_holder.dart';
 import '../core/network/tenant_holder.dart';
 import '../core/network/token_holder.dart';
 import '../core/network/token_service.dart';
+import '../core/session/session_timeout_service.dart';
 import '../features/Cashier/data/api/cashier_api_service.dart';
 import '../features/Cashier/di/cashier_di.dart';
 import '../features/onboarding/data/app_init_repository.dart';
@@ -22,6 +23,7 @@ import '../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/usecases/login_usecase.dart';
+import '../features/Cashier/domain/repositories/cashier_auth_repository.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -52,6 +54,9 @@ Future<void> initDependencies() async {
         sl<TokenHolder>().clear();
         sl<SeasonHolder>().clear();
         sl<TenantHolder>().clear();
+        if (sl.isRegistered<SessionTimeoutService>()) {
+          sl<SessionTimeoutService>().cancel();
+        }
         await sl<AuthRepository>().logout();
       },
       encryptionService: sl<EncryptionService>(),
@@ -82,6 +87,17 @@ Future<void> initDependencies() async {
 
   // Cashier feature (splash, login, dashboard)
   initCashierDi(sl);
+
+  sl.registerLazySingleton<SessionTimeoutService>(
+    () => SessionTimeoutService(
+      sl<TokenService>(),
+      sl<AuthRepository>(),
+      sl<TenantHolder>(),
+      sl<SeasonHolder>(),
+      sl<CashierAuthRepository>(),
+    ),
+  );
+
   initCreateFaydaBillDi(sl);
 
   sl.registerLazySingleton<FcmTokenRegistrar>(
@@ -111,4 +127,6 @@ Future<void> initDependencies() async {
   if (savedSeasonId != null && savedSeasonId.isNotEmpty) {
     sl<SeasonHolder>().setSeasonId(savedSeasonId);
   }
+
+  await sl<SessionTimeoutService>().restoreFromStorageIfLoggedIn();
 }

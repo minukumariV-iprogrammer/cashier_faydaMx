@@ -7,6 +7,7 @@ import '../../../../../core/network/token_holder.dart';
 import '../../../../../core/network/token_service.dart';
 import '../../../../../core/models/cashier_profile_snapshot.dart';
 import '../../../../../core/push/fcm_service.dart';
+import '../../../../../core/session/session_timeout_service.dart';
 import '../../../../../di/injection.dart';
 import '../../../domain/usecases/cashier_login_usecase.dart';
 import '../../../domain/usecases/fetch_active_season_usecase.dart';
@@ -176,6 +177,7 @@ class CashierLoginBloc
   }
 
   Future<void> _rollbackLogin() async {
+    sl<SessionTimeoutService>().cancel();
     await tokenService.clearTokens();
     tenantHolder.clear();
     seasonHolder.clear();

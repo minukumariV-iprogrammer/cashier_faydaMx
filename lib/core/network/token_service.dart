@@ -23,6 +23,10 @@ abstract class TokenService {
   Future<CashierProfileSnapshot?> getCashierProfileSnapshot();
   Future<void> clearTokens();
 
+  /// Store `sessionTimeout` from GET store (minutes). Used for idle logout after cold start.
+  Future<void> setSessionTimeoutMinutes(int? minutes);
+  Future<int?> getSessionTimeoutMinutes();
+
   /// Last FCM token persisted after successful backend sync (rotation / dashboard).
   Future<void> setCachedFcmToken(String token);
   Future<String?> getCachedFcmToken();
@@ -35,6 +39,7 @@ const String _keyTenantId = 'cashier_tenant_id';
 const String _keySeasonId = 'cashier_season_id';
 const String _keyProfileSnapshot = 'cashier_profile_snapshot';
 const String _keyCachedFcmToken = 'cashier_cached_fcm_token';
+const String _keySessionTimeoutMinutes = 'cashier_session_timeout_minutes';
 
 class TokenServiceImpl implements TokenService {
   TokenServiceImpl(this._storage);
@@ -110,6 +115,26 @@ class TokenServiceImpl implements TokenService {
     await _storage.delete(key: _keySeasonId);
     await _storage.delete(key: _keyProfileSnapshot);
     await _storage.delete(key: _keyCachedFcmToken);
+    await _storage.delete(key: _keySessionTimeoutMinutes);
+  }
+
+  @override
+  Future<void> setSessionTimeoutMinutes(int? minutes) async {
+    if (minutes == null || minutes <= 0) {
+      await _storage.delete(key: _keySessionTimeoutMinutes);
+      return;
+    }
+    await _storage.write(
+      key: _keySessionTimeoutMinutes,
+      value: minutes.toString(),
+    );
+  }
+
+  @override
+  Future<int?> getSessionTimeoutMinutes() async {
+    final raw = await _storage.read(key: _keySessionTimeoutMinutes);
+    if (raw == null || raw.isEmpty) return null;
+    return int.tryParse(raw);
   }
 
   @override

@@ -15,6 +15,7 @@ import 'core/utils/toast_utils.dart';
 import 'di/injection.dart';
 import 'core/push/fcm_service.dart';
 import 'core/security/security_service.dart';
+import 'core/session/session_inactivity_listener.dart';
 
 /// Runs the app. Call after FlavorConfig.init() from main_dev.dart, main_stage.dart, main_prod.dart.
 void runCashierApp() {
@@ -117,6 +118,9 @@ class _CashierAppState extends State<CashierApp> {
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
             routerConfig: _router,
+            builder: (context, child) => SessionInactivityListener(
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         );
       },

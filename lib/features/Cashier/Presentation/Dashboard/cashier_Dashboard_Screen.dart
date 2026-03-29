@@ -5,12 +5,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/navigation/app_routers.dart';
 import '../../../../core/navigation/dashboard_refresh_notifier.dart';
+import '../../../../core/network/errors/exceptions.dart';
 import '../../../../core/utils/toast_utils.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/network/season_holder.dart';
 import '../../../../core/network/tenant_holder.dart';
 import '../../../../core/network/token_service.dart';
+import '../../../../core/session/session_timeout_service.dart';
 import '../../../../features/auth/domain/repositories/auth_repository.dart';
+import '../../domain/repositories/cashier_auth_repository.dart';
 import 'Bloc/cashier_dashboard_bloc.dart';
 import 'Bloc/cashier_dashboard_event.dart';
 import 'Bloc/cashier_dashboard_state.dart';
@@ -96,6 +99,46 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen>
     );
     if (confirmed != true || !mounted) return;
 
+    final refresh = await sl<TokenService>().getRefreshToken();
+    if (refresh == null || refresh.isEmpty) {
+      ToastUtils.showErrorToast(
+        message: 'Unable to logout: missing refresh token.',
+      );
+      return;
+    }
+
+    try {
+      await sl<CashierAuthRepository>().logoutRemote(
+        refreshToken: refresh,
+        logoutType: 'manual_logout',
+      );
+    } on NetworkException catch (e) {
+      if (!mounted) return;
+      ToastUtils.showErrorToast(
+        message: e.message ?? 'No internet connection',
+      );
+      return;
+    } on UnauthorizedException catch (e) {
+      if (!mounted) return;
+      ToastUtils.showErrorToast(
+        message: e.message ?? 'Logout failed',
+      );
+      return;
+    } on ServerException catch (e) {
+      if (!mounted) return;
+      ToastUtils.showErrorToast(
+        message: e.message ?? 'Logout failed',
+      );
+      return;
+    } catch (e) {
+      if (!mounted) return;
+      ToastUtils.showErrorToast(message: 'Logout failed');
+      return;
+    }
+
+    if (!mounted) return;
+
+    sl<SessionTimeoutService>().cancel();
     await sl<TokenService>().clearTokens();
     sl<TenantHolder>().clear();
     sl<SeasonHolder>().clear();

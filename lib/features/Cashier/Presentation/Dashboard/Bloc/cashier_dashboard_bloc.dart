@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/network/errors/exceptions.dart';
 import '../../../../../core/network/token_service.dart';
+import '../../../../../core/session/session_timeout_service.dart';
 import '../../../domain/entities/store_full_entity.dart';
 import '../../../domain/entities/store_summary_entity.dart';
 import '../../../domain/usecases/get_store_detail_usecase.dart';
@@ -16,9 +17,11 @@ class CashierDashboardBloc
     required GetStoreSummaryUseCase getStoreSummaryUseCase,
     required GetStoreDetailUseCase getStoreDetailUseCase,
     required TokenService tokenService,
+    required SessionTimeoutService sessionTimeoutService,
   })  : _getStoreSummaryUseCase = getStoreSummaryUseCase,
         _getStoreDetailUseCase = getStoreDetailUseCase,
         _tokenService = tokenService,
+        _sessionTimeoutService = sessionTimeoutService,
         super(const CashierDashboardState()) {
     on<CashierDashboardLoadRequested>(_onLoadRequested);
   }
@@ -26,6 +29,7 @@ class CashierDashboardBloc
   final GetStoreSummaryUseCase _getStoreSummaryUseCase;
   final GetStoreDetailUseCase _getStoreDetailUseCase;
   final TokenService _tokenService;
+  final SessionTimeoutService _sessionTimeoutService;
 
   Future<void> _onLoadRequested(
     CashierDashboardLoadRequested event,
@@ -51,6 +55,9 @@ class CashierDashboardBloc
         _getStoreDetailUseCase(storeId: storeId),
       ]);
       final storeFull = results[1] as StoreFullEntity;
+      await _sessionTimeoutService.configureAndStart(
+        storeFull.sessionTimeoutMinutes,
+      );
       emit(state.copyWith(
         status: CashierDashboardStatus.success,
         summary: results[0] as StoreSummaryEntity,

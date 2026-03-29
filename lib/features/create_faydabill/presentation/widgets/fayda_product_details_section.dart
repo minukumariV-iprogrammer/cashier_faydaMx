@@ -31,7 +31,6 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
   late final TextEditingController _nameCtrl;
   late final TextEditingController _rateCtrl;
   late final TextEditingController _amountCtrl;
-  late final TextEditingController _mrpCtrl;
   late final TextEditingController _gvCtrl;
   late final TextEditingController _cashbackCtrl;
 
@@ -42,7 +41,6 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
     _nameCtrl = TextEditingController(text: s.productName);
     _rateCtrl = TextEditingController(text: s.productRate);
     _amountCtrl = TextEditingController(text: s.productAmount);
-    _mrpCtrl = TextEditingController(text: s.productMrp);
     _gvCtrl = TextEditingController(text: s.productGv);
     _cashbackCtrl = TextEditingController(text: s.productCashback);
   }
@@ -61,7 +59,6 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
       _nameCtrl.text = s.productName;
       _rateCtrl.text = s.productRate;
       _amountCtrl.text = s.productAmount;
-      _mrpCtrl.text = s.productMrp;
       _gvCtrl.text = s.productGv;
       _cashbackCtrl.text = s.productCashback;
     } else {
@@ -75,9 +72,6 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
       if (oldWidget.state.productRate != s.productRate) {
         _rateCtrl.text = s.productRate;
       }
-      if (oldWidget.state.productMrp != s.productMrp) {
-        _mrpCtrl.text = s.productMrp;
-      }
       if (oldWidget.state.productAmount != s.productAmount) {
         _amountCtrl.text = s.productAmount;
       }
@@ -89,7 +83,6 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
     _nameCtrl.dispose();
     _rateCtrl.dispose();
     _amountCtrl.dispose();
-    _mrpCtrl.dispose();
     _gvCtrl.dispose();
     _cashbackCtrl.dispose();
     super.dispose();
@@ -283,38 +276,16 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
                 ],
               ),
               const SizedBox(height: 14),
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _label('MRP'),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _mrpCtrl,
-                          enabled: false,
-                          keyboardType: TextInputType.number,
-                          decoration: _fieldDecoration(enabled: false),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _label('GV'),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _gvCtrl,
-                          enabled: false,
-                          keyboardType: TextInputType.number,
-                          decoration: _fieldDecoration(enabled: false),
-                        ),
-                      ],
-                    ),
+                  _label('GV'),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _gvCtrl,
+                    enabled: false,
+                    keyboardType: TextInputType.number,
+                    decoration: _fieldDecoration(enabled: false),
                   ),
                 ],
               ),

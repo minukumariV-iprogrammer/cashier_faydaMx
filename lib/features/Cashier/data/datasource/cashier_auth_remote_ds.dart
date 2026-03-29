@@ -33,6 +33,11 @@ abstract class CashierAuthRemoteDataSource {
     required String phone,
     required int roleId,
   });
+
+  Future<void> merchantLogout({
+    required String refreshToken,
+    required String logoutType,
+  });
 }
 
 class CashierAuthRemoteDataSourceImpl
@@ -116,6 +121,20 @@ class CashierAuthRemoteDataSourceImpl
           'roleId': roleId,
         },
       ),
+    );
+  }
+
+  @override
+  Future<void> merchantLogout({
+    required String refreshToken,
+    required String logoutType,
+  }) async {
+    await handleApiCall(
+      apiService.merchantLogout(<String, dynamic>{
+        'portal': 'merchant',
+        'refreshToken': refreshToken,
+        'logoutType': logoutType,
+      }),
     );
   }
 

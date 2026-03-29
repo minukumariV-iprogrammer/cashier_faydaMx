@@ -128,8 +128,15 @@ class _FaydaTransactionVerifyDialogState
       return;
     }
     if (digitsOnly.isEmpty) {
-      _digits[i].text = '';
+      _digits[i].clear();
       _refreshPinUi();
+      if (i > 0) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _focusNodes[i - 1].requestFocus();
+          }
+        });
+      }
       return;
     }
     _digits[i].text = digitsOnly;
@@ -160,12 +167,37 @@ class _FaydaTransactionVerifyDialogState
   @override
   Widget build(BuildContext context) {
     return BlocListener<CreateFaydaBillBloc, CreateFaydaBillState>(
-      listenWhen: (p, c) =>
-          c.transactionSuccessMessage != null &&
-          c.transactionSuccessMessage != p.transactionSuccessMessage,
+      listenWhen: (p, c) {
+        if (c.transactionSuccessMessage != null &&
+            c.transactionSuccessMessage != p.transactionSuccessMessage) {
+          return true;
+        }
+        final err = c.cashierTransactionError;
+        if (err != null &&
+            err.isNotEmpty &&
+            err != p.cashierTransactionError) {
+          return true;
+        }
+        return false;
+      },
       listener: (context, state) {
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
+        if (state.transactionSuccessMessage != null) {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+          return;
+        }
+        final err = state.cashierTransactionError;
+        if (err != null && err.isNotEmpty) {
+          for (final c in _digits) {
+            c.clear();
+          }
+          _refreshPinUi();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _focusNodes[3].requestFocus();
+            }
+          });
         }
       },
       child: Material(

@@ -103,5 +103,16 @@ class CashierAuthRepositoryImpl implements CashierAuthRepository {
       newPassword: newPassword,
     );
   }
+
+  @override
+  Future<void> logoutRemote({
+    required String refreshToken,
+    required String logoutType,
+  }) async {
+    await remoteDataSource.merchantLogout(
+      refreshToken: refreshToken,
+      logoutType: logoutType,
+    );
+  }
 }
 

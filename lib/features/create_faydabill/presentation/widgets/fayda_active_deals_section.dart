@@ -317,6 +317,15 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
     return _scrollController.offset < max - 1.5;
   }
 
+  /// Hide the large “No active deals” placeholder when count is already 0 in the title.
+  bool _hideEmptyDealsPlaceholder(CreateFaydaBillState s) {
+    if (s.selectedSubcategoryMappingId == null) return false;
+    if (s.promotionsStatus != CreateFaydaBillPromotionsStatus.success) {
+      return false;
+    }
+    return s.promotions.isEmpty && s.promotionsTotal == 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = widget.state;
@@ -369,16 +378,18 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
             child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
           )
         else if (deals.isEmpty)
-          SizedBox(
-            height: 120,
-            child: Center(
-              child: Text(
-                _emptyMessage(s),
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-              ),
-            ),
-          )
+          _hideEmptyDealsPlaceholder(s)
+              ? const SizedBox.shrink()
+              : SizedBox(
+                  height: 120,
+                  child: Center(
+                    child: Text(
+                      _emptyMessage(s),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                    ),
+                  ),
+                )
         else
           SingleChildScrollView(
             controller: _scrollController,

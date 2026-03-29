@@ -19,4 +19,10 @@ abstract class CashierAuthRepository {
     required String otp,
     required String newPassword,
   });
+
+  /// POST `/api/auth/logout` — revoke refresh on server before clearing local data.
+  Future<void> logoutRemote({
+    required String refreshToken,
+    required String logoutType,
+  });
 }

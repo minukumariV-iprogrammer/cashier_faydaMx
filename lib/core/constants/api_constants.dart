@@ -16,6 +16,9 @@ class ApiConstants {
   /// Adjust path if your backend contract differs.
   static const String registerFcmToken = '/api/auth/fcm-token';
 
+  /// POST body: `portal`, `refreshToken`, `logoutType` (`manual_logout`, `session_timeout`, …).
+  static const String merchantLogout = '/api/auth/logout';
+
   /// POST `/api/masters/app-version` — app init / update & maintenance status.
   static const String appVersion = '/api/masters/app-version';
 

@@ -61,6 +61,7 @@ class StoreFullEntity extends Equatable {
     required this.productCategories,
     required this.subcategoryMappings,
     this.allowCoinWithoutGV = false,
+    this.sessionTimeoutMinutes,
   });
 
   final StoreDetailEntity detail;
@@ -69,6 +70,9 @@ class StoreFullEntity extends Equatable {
 
   /// When true, "Other Benefits" tab is available without product lines; coins without GV flows.
   final bool allowCoinWithoutGV;
+
+  /// Idle logout duration from store API `sessionTimeout` (minutes). Null or non-positive disables.
+  final int? sessionTimeoutMinutes;
 
   /// Subcategories where `categoryMasterId` matches [categoryId] (string compare).
   List<StoreSubcategoryMappingEntity> subcategoriesForCategory(int categoryId) {
@@ -80,5 +84,5 @@ class StoreFullEntity extends Equatable {
 
   @override
   List<Object?> get props =>
-      [detail, productCategories, subcategoryMappings, allowCoinWithoutGV];
+      [detail, productCategories, subcategoryMappings, allowCoinWithoutGV, sessionTimeoutMinutes];
 }

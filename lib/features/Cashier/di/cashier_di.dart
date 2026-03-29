@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../core/push/fcm_service.dart';
+import '../../../../core/session/session_timeout_service.dart';
 import '../../../../core/network/season_holder.dart';
 import '../../../../core/network/tenant_holder.dart';
 import '../../../../core/network/token_service.dart';
@@ -94,6 +95,7 @@ void initCashierDi(GetIt sl) {
       getStoreSummaryUseCase: sl<GetStoreSummaryUseCase>(),
       getStoreDetailUseCase: sl<GetStoreDetailUseCase>(),
       tokenService: sl<TokenService>(),
+      sessionTimeoutService: sl<SessionTimeoutService>(),
     ),
   );
   sl.registerFactory<FcmCubit>(

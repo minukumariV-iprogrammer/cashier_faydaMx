@@ -224,43 +224,20 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen>
               ),
             ],
           ),
-          body: Padding(
-            padding: EdgeInsets.all(16.w),
-            child: showInitialLoader
-                ? const CashierDashboardShimmer()
-                : _buildBody(context, state, loading),
-          ),
+          body: showInitialLoader
+              ? const CashierDashboardShimmer()
+              : Container(
+              child: _buildBody(context, state, loading)),
         );
       },
     );
   }
 
   Widget _buildBody(
-    BuildContext context,
-    CashierDashboardState state,
-    bool loading,
-  ) {
-    if (state.status == CashierDashboardStatus.failure &&
-        state.summary == null) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            state.errorMessage ?? 'Failed to load dashboard',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 14.sp),
-          ),
-          SizedBox(height: 16.h),
-          TextButton(
-            onPressed: () => context
-                .read<CashierDashboardBloc>()
-                .add(const CashierDashboardLoadRequested()),
-            child: const Text('Retry'),
-          ),
-        ],
-      );
-    }
-
+      BuildContext context,
+      CashierDashboardState state,
+      bool loading,
+      ) {
     final s = state.summary;
     final gift = s?.giftVoucherBalance.toString() ?? '—';
     final coins = s?.coinBalance.toString() ?? '—';
@@ -271,64 +248,127 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen>
     return Stack(
       children: [
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                _topCard(
-                  title: 'QR Voucher Balance',
-                  value: gift,
-                ),
-                SizedBox(width: 12.w),
-                _topCard(
-                  title: 'Coin Balance Today',
-                  value: coins,
-                ),
-              ],
-            ),
             SizedBox(height: 16.h),
-            Row(
-              children: [
-                _statCard(
-                  title: 'Total Transactions Today',
-                  value: tx,
-                ),
-                SizedBox(width: 12.w),
-                _statCard(
-                  title: 'Total Coins Issued Today',
-                  value: coinsIssued,
-                ),
-                SizedBox(width: 12.w),
-                _statCard(
-                  title: 'Total Coupons Issued Today',
-                  value: coupons,
-                ),
-              ],
-            ),
-            SizedBox(height: 30.h),
-            SizedBox(
+
+            /// 🔹 GREY CONTAINER (only section background)
+            Container(
               width: double.infinity,
-              height: 50.h,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B1BE3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
+              // margin: EdgeInsets.symmetric(horizontal: 16.w),
+                padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100, // ✅ GREY BACKGROUND
+                // borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: Column(
+                children: [
+                  /// 🔹 TOP WHITE CARD (2 ITEMS)
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white, // ✅ WHITE CARD
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _item(
+                            title: 'Gift Voucher Balance',
+                            value: gift,
+                          ),
+                        ),
+                        SizedBox(width: 24.w),
+                        Expanded(
+                          child: _item(
+                            title: 'Coin Balance Today',
+                            value: coins,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                onPressed: () => context.push(AppRoutes.createFaydaBill),
-                child: Text(
-                  'Create Fayda Bill  >',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+
+                  SizedBox(height: 16.h),
+
+                  /// 🔹 BOTTOM WHITE CARD (3 ITEMS)
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white, // ✅ WHITE CARD
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _item(
+                            title: 'Total Transaction Today',
+                            value: tx,
+                          ),
+                        ),
+                        SizedBox(width: 16.w),
+                        Expanded(
+                          child: _item(
+                            title: 'Total Coins Issued Today',
+                            value: coinsIssued,
+                          ),
+                        ),
+                        SizedBox(width: 16.w),
+                        Expanded(
+                          child: _item(
+                            title: 'Total Coupons Issued Today',
+                            value: coupons,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 30.h),
+
+            /// 🔹 CTA BUTTON (same)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50.h,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0040B8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                  onPressed: () => context.push(AppRoutes.createFaydaBill),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Create Fayda Bill',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Icon(
+                        Icons.send_rounded,
+                        size: 18.sp,
+                        color: Colors.white,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           ],
         ),
+
         if (loading && s != null)
           Positioned(
             top: 0,
@@ -340,64 +380,27 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen>
     );
   }
 
-  Widget _topCard({required String title, required String value}) => Expanded(
-        child: Container(
-          padding: EdgeInsets.all(16.w),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
+  Widget _item({required String title, required String value}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 22.sp,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
           ),
         ),
-      );
-
-  Widget _statCard({required String title, required String value}) =>
-      Expanded(
-        child: Container(
-          padding: EdgeInsets.all(12.w),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: Column(
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
+        SizedBox(height: 6.h),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.grey.shade600,
           ),
         ),
-      );
+      ],
+    );
+  }
 }

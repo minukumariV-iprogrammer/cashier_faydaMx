@@ -86,7 +86,7 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                   'Welcome to FaydaMX\nCentral',
                   textAlign: TextAlign.center,
                   style:
-                      TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+                      TextStyle(color: Color(0xFF1C252E), fontSize: 18.sp, fontWeight: FontWeight.w600),
                 ),
 
                 SizedBox(height: 30.h),
@@ -100,6 +100,7 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                         'Login',
                         style: TextStyle(
                           fontSize: 24.sp,
+                          color: Color(0xFF1C252E),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -124,7 +125,16 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                         decoration: InputDecoration(
                           labelText: 'User Name',
                           hintText: 'demo453',
+                          labelStyle: TextStyle(
+                            color: Color(0xFF808080), // 👈 CSS grey-g-60
+                          ),
+
+                          floatingLabelStyle: TextStyle(
+                            color: Color(0xFF808080), // when focused
+                          ),
+
                           filled: true,
+
                           fillColor: const Color(0x00FFD417),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.r),
@@ -163,6 +173,14 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                             decoration: InputDecoration(
                               labelText: 'Password',
                               hintText: 'demo453',
+                              labelStyle: TextStyle(
+                                color: Color(0xFF808080), // 👈 CSS grey-g-60
+                              ),
+
+                              floatingLabelStyle: TextStyle(
+                                color: Color(0xFF808080), // when focused
+                              ),
+
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   obscure
@@ -203,14 +221,17 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                         child: TextButton(
                           onPressed: () =>
                               context.push(AppRoutes.cashierForgotPassword),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Color(0xFF0040B8), // 👈 CSS color
+                          ),
                           child: Text(
                             'Forgot password?',
                             style: TextStyle(fontSize: 12.sp),
                           ),
-                        ),
+                        )
                       ),
 
-                      SizedBox(height: 0.2.sh),
+                      SizedBox(height: 0.32.sh),
 
 
                       BlocConsumer<CashierLoginBloc, CashierLoginState>(

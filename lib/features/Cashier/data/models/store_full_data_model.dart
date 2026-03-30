@@ -132,7 +132,7 @@ class StoreFullDataModel {
       storeDisplayId: json['storeDisplayId']?.toString() ?? '',
       storeLogo: json['storeLogo']?.toString(),
       status: json['status']?.toString() ?? '',
-      sessionTimeoutMinutes: 2,//(json['sessionTimeout'] as num?)?.toInt(),
+      sessionTimeoutMinutes: (json['sessionTimeout'] as num?)?.toInt(),
       allowCoinWithoutGV: json['allowCoinWithoutGV'] == true,
       productCategory: pc
               ?.map((e) => ProductCategoryModel.fromJson(

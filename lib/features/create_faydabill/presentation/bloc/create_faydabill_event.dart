@@ -106,6 +106,11 @@ class CreateFaydaBillAddToCartPressed extends CreateFaydaBillEvent {
   const CreateFaydaBillAddToCartPressed();
 }
 
+/// Clears [CreateFaydaBillState.userToastMessage] after the UI showed a toast.
+class CreateFaydaBillUserToastConsumed extends CreateFaydaBillEvent {
+  const CreateFaydaBillUserToastConsumed();
+}
+
 /// Recalculates GV via `/api/store/calculate-gift-voucher` (quantity / debounced amount).
 class CreateFaydaBillGiftVoucherFetch extends CreateFaydaBillEvent {
   const CreateFaydaBillGiftVoucherFetch();

@@ -17,10 +17,15 @@ class SecurityService {
   bool get isCompromised => _jailbroken || _developerMode;
 
   /// When true, splash must block navigation and show security UI.
+  ///
+  /// - Dev flavor: never block (local debugging).
+  /// - Stage: block only rooted/jailbroken devices (QA phones often have Developer options on).
+  /// - Prod: block rooted devices and devices with Developer options enabled.
   bool get shouldBlockOnSplash {
-    if (!isCompromised) return false;
     if (FlavorConfig.isDevelopment()) return false;
-    return true;
+    if (_jailbroken) return true;
+    if (_developerMode && FlavorConfig.isProduction()) return true;
+    return false;
   }
 
   Future<void> initialize() async {

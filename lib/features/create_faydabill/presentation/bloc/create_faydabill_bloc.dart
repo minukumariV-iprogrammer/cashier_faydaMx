@@ -60,6 +60,7 @@ class CreateFaydaBillBloc extends Bloc<CreateFaydaBillEvent, CreateFaydaBillStat
     on<CreateFaydaBillOtherBenefitAddToCartPressed>(
         _onOtherBenefitAddToCartPressed);
     on<CreateFaydaBillOtherBenefitRemoved>(_onOtherBenefitRemoved);
+    on<CreateFaydaBillUserToastConsumed>(_onUserToastConsumed);
   }
 
   final GetStoreDetailUseCase _getStoreDetailUseCase;
@@ -109,6 +110,12 @@ class CreateFaydaBillBloc extends Bloc<CreateFaydaBillEvent, CreateFaydaBillStat
         promotionsTotal: 0,
         clearPromotionsError: true,
       ));
+      if (firstCat != null) {
+        final subs = full.subcategoriesForCategory(firstCat);
+        if (subs.length == 1) {
+          add(CreateFaydaBillSubcategorySelected(subs.first.id));
+        }
+      }
     } on InputValidationException catch (e) {
       emit(state.copyWith(
         storeStatus: CreateFaydaBillStoreStatus.failure,
@@ -236,6 +243,19 @@ class CreateFaydaBillBloc extends Bloc<CreateFaydaBillEvent, CreateFaydaBillStat
       promotionsTotal: 0,
       clearPromotionsError: true,
     ));
+    final full = state.storeFull;
+    if (full == null) return;
+    final subs = full.subcategoriesForCategory(event.categoryId);
+    if (subs.length == 1) {
+      add(CreateFaydaBillSubcategorySelected(subs.first.id));
+    }
+  }
+
+  void _onUserToastConsumed(
+    CreateFaydaBillUserToastConsumed event,
+    Emitter<CreateFaydaBillState> emit,
+  ) {
+    emit(state.copyWith(clearUserToast: true));
   }
 
   Future<void> _onSubcategorySelected(
@@ -448,7 +468,13 @@ class CreateFaydaBillBloc extends Bloc<CreateFaydaBillEvent, CreateFaydaBillStat
     Emitter<CreateFaydaBillState> emit,
   ) {
     final item = _promotionById(event.promotionId);
-    if (item == null || item.soldOut) return;
+    if (item == null) return;
+    if (item.isUnavailableForPurchase) {
+      emit(state.copyWith(
+        userToastMessage: 'this product is out of stock',
+      ));
+      return;
+    }
     emit(_applyPromotionToProductDetails(state, item));
     add(const CreateFaydaBillGiftVoucherFetch());
   }
@@ -598,7 +624,27 @@ class CreateFaydaBillBloc extends Bloc<CreateFaydaBillEvent, CreateFaydaBillStat
     CreateFaydaBillAddToCartPressed event,
     Emitter<CreateFaydaBillState> emit,
   ) async {
-    if (!state.isProductDetailsFormComplete) return;
+    if (state.selectedSubcategoryMappingId == null) {
+      emit(state.copyWith(
+        userToastMessage: 'Please select sub-category first',
+      ));
+      return;
+    }
+    if (!state.hasDealSelection) {
+      final unit = _manualMrpPerUnit();
+      if (unit == null || unit <= 0) {
+        emit(state.copyWith(
+          userToastMessage: 'Please fill MRP before adding to cart',
+        ));
+        return;
+      }
+    }
+    if (!state.isProductDetailsFormComplete) {
+      emit(state.copyWith(
+        userToastMessage: 'Please fill MRP before adding to cart',
+      ));
+      return;
+    }
 
     final subCat = _resolvedSubCategoryId();
     if (subCat == null) return;
@@ -698,13 +744,22 @@ class CreateFaydaBillBloc extends Bloc<CreateFaydaBillEvent, CreateFaydaBillStat
     } on ServerException catch (e) {
       emit(state.copyWith(
         previewSummaryLoading: false,
-        giftVoucherErrorMessage: e.message,
+        clearGiftVoucherError: true,
+        userToastMessage: e.message ?? 'Something went wrong',
+      ));
+      return false;
+    } on NetworkException catch (e) {
+      emit(state.copyWith(
+        previewSummaryLoading: false,
+        clearGiftVoucherError: true,
+        userToastMessage: e.message ?? 'No internet connection',
       ));
       return false;
     } catch (e) {
       emit(state.copyWith(
         previewSummaryLoading: false,
-        giftVoucherErrorMessage: e.toString(),
+        clearGiftVoucherError: true,
+        userToastMessage: e.toString(),
       ));
       return false;
     }

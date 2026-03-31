@@ -366,12 +366,14 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
             ),
           ],
         ),
+        if(_displayCount >0)...[
         const SizedBox(height: 4),
         Container(
           height: 1,
           color: const Color(0xFFE2E8F0),
         ),
         const SizedBox(height: 12),
+        ],
         if (loading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
@@ -380,16 +382,7 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
         else if (deals.isEmpty)
           _hideEmptyDealsPlaceholder(s)
               ? const SizedBox.shrink()
-              : SizedBox(
-                  height: 120,
-                  child: Center(
-                    child: Text(
-                      _emptyMessage(s),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                    ),
-                  ),
-                )
+              :const SizedBox.shrink()
         else
           SingleChildScrollView(
             controller: _scrollController,
@@ -405,9 +398,9 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
                       item: deals[i],
                       selected: s.selectedPromotionId == deals[i].id,
                       onTap: () {
-                        if (deals[i].soldOut) {
+                        if (deals[i].isUnavailableForPurchase) {
                           ToastUtils.showErrorToast(
-                            message: 'This promotion has been sold out',
+                            message: 'this product is out of stock',
                           );
                           return;
                         }
@@ -596,7 +589,7 @@ class _DealCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   _DealPricingRow(item: item),
-                  if (item.soldOut) ...[
+                  if (item.isUnavailableForPurchase) ...[
                     const SizedBox(height: 4),
                     const Text(
                       'SOLD OUT',

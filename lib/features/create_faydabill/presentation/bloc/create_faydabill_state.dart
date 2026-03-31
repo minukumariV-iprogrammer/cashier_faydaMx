@@ -63,6 +63,7 @@ class CreateFaydaBillState extends Equatable {
     this.otherBenefitReason = '',
     this.otherBenefitCashback = '',
     this.otherBenefitInCart = false,
+    this.userToastMessage,
   });
 
   final CreateFaydaBillStoreStatus storeStatus;
@@ -115,6 +116,9 @@ class CreateFaydaBillState extends Equatable {
   final String otherBenefitReason;
   final String otherBenefitCashback;
   final bool otherBenefitInCart;
+
+  /// One-shot validation / info toast (Add to Cart); cleared after [CreateFaydaBillUserToastConsumed].
+  final String? userToastMessage;
 
   bool get hasDealSelection =>
       selectedPromotionId != null && selectedPromotionId!.isNotEmpty;
@@ -194,6 +198,7 @@ class CreateFaydaBillState extends Equatable {
         otherBenefitReason,
         otherBenefitCashback,
         otherBenefitInCart,
+        userToastMessage,
       ];
 
   CreateFaydaBillState copyWith({
@@ -244,6 +249,8 @@ class CreateFaydaBillState extends Equatable {
     String? otherBenefitCashback,
     bool? otherBenefitInCart,
     bool clearOtherBenefit = false,
+    String? userToastMessage,
+    bool clearUserToast = false,
   }) {
     return CreateFaydaBillState(
       storeStatus: storeStatus ?? this.storeStatus,
@@ -317,6 +324,9 @@ class CreateFaydaBillState extends Equatable {
       otherBenefitInCart: clearCustomer || clearOtherBenefit
           ? false
           : (otherBenefitInCart ?? this.otherBenefitInCart),
+      userToastMessage: clearCustomer || clearUserToast
+          ? null
+          : (userToastMessage ?? this.userToastMessage),
     );
   }
 }

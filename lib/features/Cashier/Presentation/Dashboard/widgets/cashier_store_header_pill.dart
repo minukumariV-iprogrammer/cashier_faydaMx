@@ -21,7 +21,7 @@ class CashierStoreHeaderPill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.only(left: 8, right: 4, top: 4, bottom: 4),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          // color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(28),
         ),
         child: Row(
@@ -38,9 +38,9 @@ class CashierStoreHeaderPill extends StatelessWidget {
               ),
               elevation: 8,
               child: Icon(
-                Icons.swap_vert,
+                Icons.arrow_drop_down,
                 size: 22,
-                color: Colors.grey.shade800,
+                color: Colors.black,
               ),
               itemBuilder: (context) => [
                 PopupMenuItem<void>(

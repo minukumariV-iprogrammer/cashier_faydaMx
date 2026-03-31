@@ -102,6 +102,11 @@ class PromotionItemModel {
   final String? cashbackType;
   final bool soldOut;
 
+  /// Sold out from API or no remaining units (`remainingQuantity` is 0 or negative).
+  bool get isUnavailableForPurchase =>
+      soldOut ||
+      (remainingQuantity != null && remainingQuantity! <= 0);
+
   factory PromotionItemModel.fromJson(Map<String, dynamic> json) {
     List<String>? imgs;
     final pi = json['productImages'];

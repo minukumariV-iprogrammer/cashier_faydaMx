@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/store_asset_url.dart';
@@ -354,10 +355,27 @@ class _ProductLineCard extends StatelessWidget {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text(
-                'Amt ₹$lineTotal',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+
+              Text.rich(
+                TextSpan(
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                  children: [
+                    const TextSpan(text: 'Amt '),
+                    TextSpan(
+                      text: '₹${lineTotal}',
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              // Text(
+              //   'Amt ₹$lineTotal',
+              //   style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+              // ),
+              if(item.cashback > 0)
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -378,8 +396,10 @@ class _ProductLineCard extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.card_giftcard,
-                      size: 18, color: Colors.orange.shade700),
+                  Image.asset('assets/images/gv_image.webp', width: 18.w,
+                    height: 20.h),
+                  // Icon(Icons.card_giftcard,
+                  //     size: 18, color: Colors.orange.shade700),
                   const SizedBox(width: 4),
                   Text(
                     '${item.gv}',

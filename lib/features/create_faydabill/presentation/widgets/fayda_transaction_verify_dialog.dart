@@ -195,7 +195,7 @@ class _FaydaTransactionVerifyDialogState
           _refreshPinUi();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              _focusNodes[3].requestFocus();
+              _focusNodes[0].requestFocus();
             }
           });
         }

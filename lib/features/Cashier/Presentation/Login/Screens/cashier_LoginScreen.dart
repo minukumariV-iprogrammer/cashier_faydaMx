@@ -266,7 +266,7 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
 
                         builder: (context, state) => SizedBox(
                             width: double.infinity,
-                            height: 48.h,
+                            height: 50.h,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1C252E),

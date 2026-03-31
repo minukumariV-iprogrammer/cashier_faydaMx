@@ -47,8 +47,19 @@ class _CreateFaydaBillPageState extends State<CreateFaydaBillPage> {
               c.customerErrorMessage != null &&
               c.customerErrorMessage!.isNotEmpty) ||
           (c.transactionSuccessMessage != null &&
-              c.transactionSuccessMessage != p.transactionSuccessMessage),
+              c.transactionSuccessMessage != p.transactionSuccessMessage) ||
+          (c.userToastMessage != null &&
+              c.userToastMessage!.isNotEmpty &&
+              c.userToastMessage != p.userToastMessage),
       listener: (context, state) {
+        if (state.userToastMessage != null &&
+            state.userToastMessage!.isNotEmpty) {
+          ToastUtils.showErrorToast(message: state.userToastMessage!);
+          context
+              .read<CreateFaydaBillBloc>()
+              .add(const CreateFaydaBillUserToastConsumed());
+          return;
+        }
         if (state.transactionSuccessMessage != null) {
           ToastUtils.showSuccessToast(
             message: 'Transaction Submitted Successfully',

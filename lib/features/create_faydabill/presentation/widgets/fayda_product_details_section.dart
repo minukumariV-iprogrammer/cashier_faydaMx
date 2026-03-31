@@ -121,9 +121,9 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
   Widget build(BuildContext context) {
     final s = widget.state;
     final promotions = s.promotions;
-    final selectablePromotions =
-        promotions.where((p) => !p.soldOut).toList(growable: false);
-    final complete = s.isProductDetailsFormComplete;
+    final selectablePromotions = promotions
+        .where((p) => !p.isUnavailableForPurchase)
+        .toList(growable: false);
     final hasDeal = s.hasDealSelection;
     final amountEnabled = !hasDeal;
     final busy = s.giftVoucherLoading || s.previewSummaryLoading;
@@ -276,30 +276,39 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
                 ],
               ),
               const SizedBox(height: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _label('GV'),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _gvCtrl,
-                    enabled: false,
-                    keyboardType: TextInputType.number,
-                    decoration: _fieldDecoration(enabled: false),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _label('GV'),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _gvCtrl,
+                          enabled: false,
+                          keyboardType: TextInputType.number,
+                          decoration: _fieldDecoration(enabled: false),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _label('Cashback'),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _cashbackCtrl,
-                    enabled: false,
-                    keyboardType: TextInputType.number,
-                    decoration: _fieldDecoration(enabled: false),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _label('Cashback'),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _cashbackCtrl,
+                          enabled: false,
+                          keyboardType: TextInputType.number,
+                          decoration: _fieldDecoration(enabled: false),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -326,13 +335,13 @@ class _FaydaProductDetailsSectionState extends State<FaydaProductDetailsSection>
               Align(
                 alignment: Alignment.centerRight,
                 child: FilledButton(
-                  onPressed: complete && !busy
-                      ? () => context
+                  onPressed: busy
+                      ? null
+                      : () => context
                           .read<CreateFaydaBillBloc>()
-                          .add(const CreateFaydaBillAddToCartPressed())
-                      : null,
+                          .add(const CreateFaydaBillAddToCartPressed()),
                   style: FilledButton.styleFrom(
-                    backgroundColor: complete && !busy
+                    backgroundColor: !busy
                         ? AppColors.faydaBillChipSelected
                         : FaydaProductDetailsSection._disabledCta,
                     foregroundColor: Colors.white,

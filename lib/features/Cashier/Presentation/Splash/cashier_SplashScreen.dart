@@ -86,7 +86,7 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
           ? entity.storeUrl!
           : fallbackStoreUrl;
 
-      if (status != AppVersionStatus.forceUpdate) {
+      if (status == AppVersionStatus.forceUpdate) {
         _hasNavigated = true;
         context.go(
           AppRoutes.update,
@@ -98,7 +98,7 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
         );
         return;
       }
-      if (status == AppVersionStatus.softUpdate) {
+      if (status != AppVersionStatus.softUpdate) {
         _hasNavigated = true;
         context.go(
           AppRoutes.update,
@@ -173,10 +173,6 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Splash Screen for Cashier'),
-      ),
       body: SizedBox(
         width: double.infinity,
         height: double.infinity,

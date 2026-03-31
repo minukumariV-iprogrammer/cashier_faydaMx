@@ -169,7 +169,7 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen>
                   height: 32,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.grey.shade600,
+                    // color: Colors.grey.shade600,
                   ),
                 ),
                 const SizedBox(width: 10),

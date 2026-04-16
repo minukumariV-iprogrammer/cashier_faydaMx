@@ -14,7 +14,7 @@ class ApiConstants {
 
   /// POST body: `projectId`, `fcmToken`, `platform` — call when FCM token rotates (logged-in users).
   /// Adjust path if your backend contract differs.
-  static const String registerFcmToken = '/api/auth/fcm-token';
+  static const String registerFcmToken = '/api/platform-users/fcm-token-refresh';
 
   /// POST body: `portal`, `refreshToken`, `logoutType` (`manual_logout`, `session_timeout`, …).
   static const String merchantLogout = '/api/auth/logout';

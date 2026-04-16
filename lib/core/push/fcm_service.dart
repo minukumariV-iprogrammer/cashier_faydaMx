@@ -28,7 +28,7 @@ class FcmService {
     try {
       final messaging = FirebaseMessaging.instance;
 
-      if (Platform.isIOS) {
+      if (Platform.isIOS || Platform.isAndroid) {
         final settings = await messaging.requestPermission(
           alert: true,
           badge: true,
@@ -42,7 +42,7 @@ class FcmService {
       }
 
       _token = await messaging.getToken();
-
+      print("dfkhgkjhkjhgfkj  $_token");
       // Do not call register FCM API here — login already sends `fcmToken`; we only
       // POST `/api/auth/fcm-token` on rotation (`onTokenRefresh`) or when
       // [FcmTokenRegistrar] sees a token != last saved (e.g. dashboard sync).

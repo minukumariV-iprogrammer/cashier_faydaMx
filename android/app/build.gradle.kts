@@ -35,7 +35,8 @@ android {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
         }
-        create("staging") {
+        // Name must match iOS scheme `stage` (Flutter `--flavor stage`).
+        create("stage") {
             dimension = "environment"
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"

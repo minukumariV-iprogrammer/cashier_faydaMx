@@ -19,7 +19,7 @@ class AppInitRepositoryImpl implements AppInitRepository {
   @override
   Future<AppInitEntity> getAppInit() async {
     final info = await PackageInfo.fromPlatform();
-    final platform = Platform.isAndroid ? 'android' : 'ios';
+    final platform = Platform.isAndroid ? 'cashier_app_android' : 'cashier_app_ios';
     final request = AppInitRequestModel(
       platform: platform,
       currentVersion: info.version,

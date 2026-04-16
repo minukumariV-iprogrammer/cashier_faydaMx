@@ -1,10 +1,10 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/navigation/app_routers.dart';
 import '../../../../core/security/security_service.dart';
@@ -12,7 +12,6 @@ import '../../../../di/injection.dart';
 import '../../../../core/network/token_service.dart';
 import '../../../onboarding/domain/app_version_status.dart';
 import '../../../onboarding/presentation/cubit/app_init_cubit.dart';
-import '../../../onboarding/presentation/widgets/update_route_extra.dart';
 
 class cashierSplashScreen extends StatefulWidget {
   const cashierSplashScreen({super.key});
@@ -78,13 +77,10 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
         context.go(AppRoutes.downtime);
         return;
       }
-      final info = await PackageInfo.fromPlatform();
       final fallbackStoreUrl = Platform.isAndroid
-          ? 'https://play.google.com/store/apps/details?id=${info.packageName}'
+          ? 'https://play.google.com'
           : 'https://apps.apple.com';
-      final storeUrl = (entity.storeUrl != null && entity.storeUrl!.isNotEmpty)
-          ? entity.storeUrl!
-          : fallbackStoreUrl;
+      final storeUrl =  fallbackStoreUrl;
 
       if (status == AppVersionStatus.forceUpdate) {
         _hasNavigated = true;
@@ -98,7 +94,28 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
         );
         return;
       }
-      if (status != AppVersionStatus.softUpdate) {
+      if (status == AppVersionStatus.softUpdate) {
+        if (kDebugMode) {
+          print("Soft update available ${entity.softUpdateWindow}");
+        }
+
+        final window = double.tryParse(
+              entity.softUpdateWindow ?? "1.0000",
+            ) ??
+            1.0;
+
+        final shouldShow = await _shouldShowSoftUpdate(window);
+
+        if (!shouldShow) {
+          if (kDebugMode) {
+            print("Soft update skipped due to window restriction");
+          }
+          await _navigateToNextScreen();
+          return;
+        }
+        final tokenService = sl<TokenService>();
+        await tokenService.setSoftUpdateLastWindow(window.toString());
+        if (!mounted) return;
         _hasNavigated = true;
         context.go(
           AppRoutes.update,
@@ -106,6 +123,7 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
             'isForceUpdate': false,
             'storeUrl': storeUrl,
             'skipAllowed': true,
+            'softUpdateWindow': window.toString(),
           },
         );
         return;
@@ -228,5 +246,44 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
         ),
       ),
     );
+  }
+
+  Future<bool> _shouldShowSoftUpdate(double currentWindow) async {
+    final storage = sl<TokenService>();
+
+    final lastSkippedStr = await storage.getSoftUpdateLastSkipped();
+    final lastWindowStr = await storage.getSoftUpdateLastWindow();
+
+    final lastWindow = double.tryParse(lastWindowStr ?? "");
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    final currentWindowStr = currentWindow.toStringAsFixed(4);
+
+    if (lastSkippedStr == null || lastSkippedStr.isEmpty) {
+      await storage.setSoftUpdateLastWindow(currentWindowStr);
+      return true;
+    }
+
+    final lastSkipped = int.tryParse(lastSkippedStr) ?? 0;
+    if (lastSkipped == 0) {
+      await storage.setSoftUpdateLastWindow(currentWindowStr);
+      return true;
+    }
+
+    if (lastWindow == null ||
+        (currentWindow - lastWindow).abs() > 0.000001) {
+
+      // 🔥 RESET TIMER FROM NOW
+      await storage.setSoftUpdateLastSkipped(now.toString());
+
+      await storage.setSoftUpdateLastWindow(currentWindowStr);
+
+      return false; // ⛔ wait fresh duration
+    }
+
+    final diff = now - lastSkipped;
+    final windowMs = (currentWindow * 24 * 60 * 60 * 1000).toInt();
+
+    return diff >= windowMs;
   }
 }

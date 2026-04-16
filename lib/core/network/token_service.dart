@@ -30,6 +30,14 @@ abstract class TokenService {
   /// Last FCM token persisted after successful backend sync (rotation / dashboard).
   Future<void> setCachedFcmToken(String token);
   Future<String?> getCachedFcmToken();
+
+  /// Soft-update prompt: last skip timestamp (ms), or `"0"` while user is on update screen.
+  Future<String?> getSoftUpdateLastSkipped();
+  Future<void> setSoftUpdateLastSkipped(String value);
+
+  /// Backend soft-update window string last used for skip/timer logic.
+  Future<String?> getSoftUpdateLastWindow();
+  Future<void> setSoftUpdateLastWindow(String value);
 }
 
 const String _keyAccessToken = 'cashier_access_token';
@@ -40,6 +48,8 @@ const String _keySeasonId = 'cashier_season_id';
 const String _keyProfileSnapshot = 'cashier_profile_snapshot';
 const String _keyCachedFcmToken = 'cashier_cached_fcm_token';
 const String _keySessionTimeoutMinutes = 'cashier_session_timeout_minutes';
+const String _keySoftUpdateLastSkipped = 'cashier_soft_update_last_skipped';
+const String _keySoftUpdateLastWindow = 'cashier_soft_update_last_window';
 
 class TokenServiceImpl implements TokenService {
   TokenServiceImpl(this._storage);
@@ -144,4 +154,22 @@ class TokenServiceImpl implements TokenService {
 
   @override
   Future<String?> getCachedFcmToken() => _storage.read(key: _keyCachedFcmToken);
+
+  @override
+  Future<String?> getSoftUpdateLastSkipped() =>
+      _storage.read(key: _keySoftUpdateLastSkipped);
+
+  @override
+  Future<void> setSoftUpdateLastSkipped(String value) async {
+    await _storage.write(key: _keySoftUpdateLastSkipped, value: value);
+  }
+
+  @override
+  Future<String?> getSoftUpdateLastWindow() =>
+      _storage.read(key: _keySoftUpdateLastWindow);
+
+  @override
+  Future<void> setSoftUpdateLastWindow(String value) async {
+    await _storage.write(key: _keySoftUpdateLastWindow, value: value);
+  }
 }

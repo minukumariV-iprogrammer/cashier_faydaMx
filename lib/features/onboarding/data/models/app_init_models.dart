@@ -48,6 +48,7 @@ class AppInitResponseModel {
       latestVersion: d.latestVersion,
       termAndConditionsUrl: d.termAndConditionsUrl,
       storeUrl: d.storeUrl,
+        softUpdateWindow:d.softUpdateWindow,
     );
   }
 }
@@ -59,6 +60,7 @@ class AppInitDataModel {
     this.latestVersion,
     this.termAndConditionsUrl,
     this.storeUrl,
+    this.softUpdateWindow,
   });
 
   final String status;
@@ -66,6 +68,7 @@ class AppInitDataModel {
   final String? latestVersion;
   final String? termAndConditionsUrl;
   final String? storeUrl;
+  final String? softUpdateWindow;
 
   factory AppInitDataModel.fromJson(Map<String, dynamic> json) {
     return AppInitDataModel(
@@ -74,6 +77,7 @@ class AppInitDataModel {
       latestVersion: json['latestVersion']?.toString(),
       termAndConditionsUrl: json['termAndConditionsUrl']?.toString(),
       storeUrl: json['storeUrl']?.toString(),
+        softUpdateWindow : json['softUpdateWindow'],
     );
   }
 }

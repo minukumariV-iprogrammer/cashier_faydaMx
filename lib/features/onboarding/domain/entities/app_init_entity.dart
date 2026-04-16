@@ -6,6 +6,7 @@ class AppInitEntity {
     this.latestVersion,
     this.termAndConditionsUrl,
     this.storeUrl,
+    this.softUpdateWindow
   });
 
   final String statusRaw;
@@ -13,4 +14,5 @@ class AppInitEntity {
   final String? latestVersion;
   final String? termAndConditionsUrl;
   final String? storeUrl;
+  final String? softUpdateWindow;
 }

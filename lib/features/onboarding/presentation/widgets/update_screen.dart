@@ -30,17 +30,12 @@ class _UpdateScreenState extends State<UpdateScreen> {
   @override
   void initState() {
     super.initState();
-    // _markUserOnUpdateScreen();
+    _markUserOnUpdateScreen();
   }
 
-  // Future<void> _markUserOnUpdateScreen() async {
-  //   final saveData = sl<SaveSecureDataUseCase>();
-  //
-  //   await saveData(
-  //     key: SharedPreferenceKeys.softUpdateLastSkipped,
-  //     value: "0", // 🔥 means user has NOT skipped yet
-  //   );
-  // }
+  Future<void> _markUserOnUpdateScreen() async {
+    await sl<TokenService>().setSoftUpdateLastSkipped('0');
+  }
   @override
   Widget build(BuildContext context) {
     return ScreenWrapper(
@@ -169,17 +164,10 @@ class _UpdateScreenState extends State<UpdateScreen> {
               right: 0,
               child: TextButton(
                 onPressed: () async {
-                  // final saveData = sl<SaveSecureDataUseCase>();
-                  // final now = DateTime.now().millisecondsSinceEpoch;
-                  // await saveData(
-                  //   key: SharedPreferenceKeys.softUpdateLastSkipped,
-                  //   value: now.toString(),
-                  // );
-                  // await saveData(
-                  //   key: "soft_update_last_window",
-                  //   value: widget.window.toString(),
-                  // );
                   final tokenService = sl<TokenService>();
+                  final now = DateTime.now().millisecondsSinceEpoch;
+                  await tokenService.setSoftUpdateLastSkipped(now.toString());
+                  await tokenService.setSoftUpdateLastWindow(widget.window.toString());
                   final accessToken = await tokenService.getAccessToken();
 
                   if (accessToken != null && accessToken.isNotEmpty) {

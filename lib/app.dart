@@ -87,6 +87,7 @@ class _CashierAppState extends State<CashierApp> {
       builder: (context, _) {
         if (!_bootstrapReady.value) {
           return MaterialApp(
+            debugShowCheckedModeBanner :false,
             theme: AppTheme.light,
             home: const Scaffold(
               body: Center(child: CircularProgressIndicator()),
@@ -96,6 +97,7 @@ class _CashierAppState extends State<CashierApp> {
         final err = _bootstrapError.value;
         if (err != null) {
           return MaterialApp(
+          //  debugShowCheckedModeBanner:false,
             theme: AppTheme.light,
             home: Scaffold(
               body: Center(

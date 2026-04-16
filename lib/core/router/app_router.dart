@@ -89,7 +89,8 @@ class AppRouter {
             return UpdateScreen(
               isForceUpdate: extra?['isForceUpdate'] ?? false,
               storeUrl: extra?['storeUrl'] ?? '',
-              skipAllowed: extra?['skipAllowed'] ?? false, window: '',
+              skipAllowed: extra?['skipAllowed'] ?? false,
+              window: extra?['softUpdateWindow']?.toString() ?? '',
             );
           },
         ),

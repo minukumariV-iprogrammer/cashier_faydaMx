@@ -6,6 +6,7 @@ import '../core/constants/api_constants.dart';
 import '../core/encryption/encryption_service.dart';
 import '../core/network/dio_client.dart';
 import '../core/network/unauthorized_session_handler.dart';
+import '../core/notifications/notification_inbox_store.dart';
 import '../core/push/fcm_service.dart';
 import '../core/push/fcm_token_registrar.dart';
 import '../core/push/in_app_payment_popup_coordinator.dart';
@@ -101,6 +102,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<PaymentPopupQueueStore>(
     () => PaymentPopupQueueStore(sl<FlutterSecureStorage>()),
   );
+  sl.registerLazySingleton<NotificationInboxStore>(
+    () => NotificationInboxStore(sl<FlutterSecureStorage>()),
+  );
   sl.registerLazySingleton<InAppPaymentPopupCoordinator>(
     () => InAppPaymentPopupCoordinator(
       sl<PaymentPopupQueueStore>(),
@@ -112,6 +116,7 @@ Future<void> initDependencies() async {
       sl<FcmTokenRegistrar>(),
       sl<InAppPaymentPopupCoordinator>(),
       sl<TokenHolder>(),
+      sl<NotificationInboxStore>(),
     ),
   );
 
@@ -136,5 +141,6 @@ Future<void> initDependencies() async {
     sl<SeasonHolder>().setSeasonId(savedSeasonId);
   }
 
+  await sl<NotificationInboxStore>().load();
   await sl<SessionTimeoutService>().restoreFromStorageIfLoggedIn();
 }

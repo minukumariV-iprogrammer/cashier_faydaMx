@@ -10,4 +10,5 @@ abstract class AppRoutes {
   static const String downtime = '/downtime';
   static const String cashierDashboard = '/dashboard';
   static const String createFaydaBill = '/create-faydabill';
+  static const String notifications = '/notifications';
 }

@@ -6,15 +6,22 @@ import 'package:flutter/foundation.dart';
 
 import '../firebase/firebase_bootstrap.dart';
 import '../network/token_holder.dart';
+import '../notifications/notification_inbox_store.dart';
 import 'in_app_payment_popup_coordinator.dart';
 import 'fcm_token_registrar.dart';
 
 class FcmService {
-  FcmService(this._registrar, this._popupCoordinator, this._tokenHolder);
+  FcmService(
+    this._registrar,
+    this._popupCoordinator,
+    this._tokenHolder,
+    this._inboxStore,
+  );
 
   final FcmTokenRegistrar _registrar;
   final InAppPaymentPopupCoordinator _popupCoordinator;
   final TokenHolder _tokenHolder;
+  final NotificationInboxStore _inboxStore;
 
   String? _token;
   StreamSubscription<String>? _tokenRefreshSub;
@@ -62,7 +69,7 @@ class FcmService {
             'FCM foreground: ${message.messageId} ${message.notification?.title} data=${message.data}',
           );
         }
-        unawaited(_enqueuePaymentPopupIfLoggedIn(message));
+        unawaited(_handleRemoteMessage(message));
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -70,7 +77,7 @@ class FcmService {
           // ignore: avoid_print
           print('FCM opened app: ${message.data}');
         }
-        unawaited(_enqueuePaymentPopupIfLoggedIn(message));
+        unawaited(_handleRemoteMessage(message));
       });
 
       final initial = await messaging.getInitialMessage();
@@ -79,8 +86,11 @@ class FcmService {
           // ignore: avoid_print
           print('FCM launched from terminated: ${initial.data}');
         }
-        await _enqueuePaymentPopupIfLoggedIn(initial);
+        await _handleRemoteMessage(initial);
       }
+
+      // Background isolate may have persisted notifications while app was killed.
+      await _inboxStore.reloadFromStorage();
     } catch (e, st) {
       debugPrint('FcmService init error: $e\n$st');
     }
@@ -110,14 +120,16 @@ class FcmService {
         _token = fresh;
       }
       await _registrar.syncToken(_token ?? '');
+      await _inboxStore.reloadFromStorage();
       await _popupCoordinator.drainQueue();
     } catch (e, st) {
       debugPrint('FcmService.syncFromDashboard: $e\n$st');
     }
   }
 
-  /// In-app payment popup only when a session exists (same as [InAppPaymentPopupCoordinator]).
-  Future<void> _enqueuePaymentPopupIfLoggedIn(RemoteMessage message) async {
+  /// Inbox always updated when possible; payment popup only when logged in.
+  Future<void> _handleRemoteMessage(RemoteMessage message) async {
+    await _inboxStore.addFromRemoteMessage(message);
     final t = _tokenHolder.token;
     if (t == null || t.isEmpty) return;
     await _popupCoordinator.enqueueRemoteMessage(message);

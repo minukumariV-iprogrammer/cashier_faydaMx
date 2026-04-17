@@ -7,6 +7,7 @@ import '../../../../core/navigation/app_routers.dart';
 import '../../../../core/navigation/dashboard_refresh_notifier.dart';
 import '../../../../core/network/errors/exceptions.dart';
 import '../../../../core/utils/toast_utils.dart';
+import '../../../../core/notifications/notification_inbox_store.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/network/season_holder.dart';
 import '../../../../core/network/tenant_holder.dart';
@@ -19,6 +20,7 @@ import 'Bloc/cashier_dashboard_event.dart';
 import 'Bloc/cashier_dashboard_state.dart';
 import 'Bloc/cashier_dashboard_status.dart';
 import 'widgets/cashier_dashboard_shimmer.dart';
+import 'widgets/cashier_notification_app_bar_button.dart';
 import 'widgets/cashier_profile_app_bar_button.dart';
 import 'widgets/cashier_profile_drawer.dart';
 import 'widgets/cashier_store_header_pill.dart';
@@ -140,6 +142,7 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen>
 
     sl<SessionTimeoutService>().cancel();
     await sl<TokenService>().clearTokens();
+    await sl<NotificationInboxStore>().clear();
     sl<TenantHolder>().clear();
     sl<SeasonHolder>().clear();
     await sl<AuthRepository>().logout();
@@ -218,6 +221,7 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen>
             titleSpacing: 16.w,
             title: _buildStoreHeaderTitle(state),
             actions: [
+              const CashierNotificationAppBarButton(),
               Padding(
                 padding: EdgeInsets.only(right: 16.w),
                 child: CashierProfileAppBarButton(onTap: _onUserIconTap),

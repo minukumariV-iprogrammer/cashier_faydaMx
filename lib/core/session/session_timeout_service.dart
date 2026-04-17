@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import '../../di/injection.dart';
 import '../navigation/app_routers.dart';
+import '../notifications/notification_inbox_store.dart';
 import '../network/season_holder.dart';
 import '../network/tenant_holder.dart';
 import '../network/token_service.dart';
@@ -95,6 +97,9 @@ class SessionTimeoutService {
     }
 
     await _tokenService.clearTokens();
+    if (sl.isRegistered<NotificationInboxStore>()) {
+      await sl<NotificationInboxStore>().clear();
+    }
     _tenantHolder.clear();
     _seasonHolder.clear();
     await _authRepository.logout();

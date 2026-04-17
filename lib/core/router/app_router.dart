@@ -21,6 +21,7 @@ import '../../features/Cashier/Presentation/Login/Bloc/login_bloc.dart';
 import '../../features/create_faydabill/presentation/bloc/create_faydabill_bloc.dart';
 import '../../features/create_faydabill/presentation/bloc/create_faydabill_event.dart';
 import '../../features/create_faydabill/presentation/pages/create_faydabill_page.dart';
+import '../../features/Cashier/Presentation/Notifications/notifications_screen.dart';
 import '../network/token_service.dart';
 import '../navigation/app_routers.dart';
 
@@ -127,6 +128,11 @@ class AppRouter {
               ..add(const CreateFaydaBillStarted()),
             child: const CreateFaydaBillPage(),
           ),
+        ),
+        GoRoute(
+          path: AppRoutes.notifications,
+          name: 'notifications',
+          builder: (_, __) => const NotificationsScreen(),
         ),
       ],
       redirect: (context, state) async {

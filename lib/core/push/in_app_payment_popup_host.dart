@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../di/injection.dart';
+import '../notifications/notification_inbox_store.dart';
 import '../navigation/app_routers.dart';
 import '../router/app_router.dart';
 import 'in_app_payment_popup_coordinator.dart';
@@ -67,6 +68,7 @@ class _InAppPaymentPopupHostState extends State<InAppPaymentPopupHost>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      unawaited(sl<NotificationInboxStore>().reloadFromStorage());
       unawaited(_coordinator.drainQueue());
     }
   }

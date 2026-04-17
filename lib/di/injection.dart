@@ -5,8 +5,11 @@ import 'package:get_it/get_it.dart';
 import '../core/constants/api_constants.dart';
 import '../core/encryption/encryption_service.dart';
 import '../core/network/dio_client.dart';
+import '../core/network/unauthorized_session_handler.dart';
 import '../core/push/fcm_service.dart';
 import '../core/push/fcm_token_registrar.dart';
+import '../core/push/in_app_payment_popup_coordinator.dart';
+import '../core/push/in_app_payment_popup_queue.dart';
 import '../core/security/security_service.dart';
 import '../core/network/season_holder.dart';
 import '../core/network/tenant_holder.dart';
@@ -50,15 +53,7 @@ Future<void> initDependencies() async {
     return createDio(
       baseUrl: ApiConstants.baseUrl,
       getAccessToken: () => sl<TokenHolder>().token,
-      onUnauthorized: () async {
-        sl<TokenHolder>().clear();
-        sl<SeasonHolder>().clear();
-        sl<TenantHolder>().clear();
-        if (sl.isRegistered<SessionTimeoutService>()) {
-          sl<SessionTimeoutService>().cancel();
-        }
-        await sl<AuthRepository>().logout();
-      },
+      onUnauthorized: UnauthorizedSessionHandler.onApiUnauthorized,
       encryptionService: sl<EncryptionService>(),
       getTenantId: () => sl<TenantHolder>().tenantId,
       getSeasonId: () => sl<SeasonHolder>().seasonId,
@@ -103,8 +98,21 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<FcmTokenRegistrar>(
     () => CashierFcmTokenRegistrar(sl<ApiService>(), sl<TokenService>()),
   );
+  sl.registerLazySingleton<PaymentPopupQueueStore>(
+    () => PaymentPopupQueueStore(sl<FlutterSecureStorage>()),
+  );
+  sl.registerLazySingleton<InAppPaymentPopupCoordinator>(
+    () => InAppPaymentPopupCoordinator(
+      sl<PaymentPopupQueueStore>(),
+      sl<TokenHolder>(),
+    ),
+  );
   sl.registerLazySingleton<FcmService>(
-    () => FcmService(sl<FcmTokenRegistrar>()),
+    () => FcmService(
+      sl<FcmTokenRegistrar>(),
+      sl<InAppPaymentPopupCoordinator>(),
+      sl<TokenHolder>(),
+    ),
   );
 
   sl.registerLazySingleton<AppInitRepository>(

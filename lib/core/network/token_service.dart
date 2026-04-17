@@ -126,6 +126,8 @@ class TokenServiceImpl implements TokenService {
     await _storage.delete(key: _keyProfileSnapshot);
     await _storage.delete(key: _keyCachedFcmToken);
     await _storage.delete(key: _keySessionTimeoutMinutes);
+    await _storage.delete(key: _keySoftUpdateLastSkipped);
+    await _storage.delete(key: _keySoftUpdateLastWindow);
   }
 
   @override

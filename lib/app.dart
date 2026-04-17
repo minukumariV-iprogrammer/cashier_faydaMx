@@ -14,6 +14,7 @@ import 'core/utils/screen_utils.dart';
 import 'core/utils/toast_utils.dart';
 import 'di/injection.dart';
 import 'core/push/fcm_service.dart';
+import 'core/push/in_app_payment_popup_host.dart';
 import 'core/security/security_service.dart';
 import 'core/session/session_inactivity_listener.dart';
 
@@ -120,8 +121,10 @@ class _CashierAppState extends State<CashierApp> {
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
             routerConfig: _router,
-            builder: (context, child) => SessionInactivityListener(
-              child: child ?? const SizedBox.shrink(),
+            builder: (context, child) => InAppPaymentPopupHost(
+              child: SessionInactivityListener(
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
           ),
         );

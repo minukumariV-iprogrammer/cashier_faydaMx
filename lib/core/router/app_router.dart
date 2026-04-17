@@ -29,6 +29,10 @@ class AppRouter {
 
   static final _rootKey = GlobalKey<NavigatorState>();
 
+  /// Use for overlays/dialogs when the caller's [BuildContext] is above [Navigator]
+  /// (e.g. [MaterialApp.router] `builder`).
+  static GlobalKey<NavigatorState> get rootNavigatorKey => _rootKey;
+
   static GoRouter? _instance;
 
   /// Current router (set after [create]). Used by maintenance interceptor hook.

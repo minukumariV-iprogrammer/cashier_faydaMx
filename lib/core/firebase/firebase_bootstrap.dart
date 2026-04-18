@@ -9,8 +9,10 @@ bool _firebaseInitialized = false;
 /// True after [Firebase.initializeApp] succeeds.
 bool get isFirebaseInitialized => _firebaseInitialized;
 
-/// Uses native config only: Android `google-services.json`, iOS `GoogleService-Info.plist`.
-/// No [DefaultFirebaseOptions] / `firebase_options.dart` required (same as classic setup).
+/// Uses native config only: Android `google-services.json` per flavor under
+/// `android/app/src/<flavor>/`, iOS **`ios/Runner/GoogleService-Info.plist`** (must be in the
+/// Xcode Runner target → Copy Bundle Resources). Flavor-specific iOS plists can be swapped via a
+/// Run Script build phase later. No [DefaultFirebaseOptions] / `firebase_options.dart` required.
 Future<void> ensureFirebaseInitialized() async {
   if (_firebaseInitialized) return;
   try {

@@ -9,6 +9,7 @@ import '../network/token_holder.dart';
 import '../notifications/notification_inbox_store.dart';
 import 'in_app_payment_popup_coordinator.dart';
 import 'fcm_token_registrar.dart';
+import 'local_notification_service.dart';
 
 class FcmService {
   FcmService(
@@ -16,12 +17,14 @@ class FcmService {
     this._popupCoordinator,
     this._tokenHolder,
     this._inboxStore,
+    this._localNotifications,
   );
 
   final FcmTokenRegistrar _registrar;
   final InAppPaymentPopupCoordinator _popupCoordinator;
   final TokenHolder _tokenHolder;
   final NotificationInboxStore _inboxStore;
+  final LocalNotificationService _localNotifications;
 
   String? _token;
   StreamSubscription<String>? _tokenRefreshSub;
@@ -50,8 +53,9 @@ class FcmService {
         }
       }
 
+      await _localNotifications.initialize();
+
       _token = await messaging.getToken();
-      print("dfkhgkjhkjhgfkj  $_token");
       // Do not call register FCM API here — login already sends `fcmToken`; we only
       // POST `/api/auth/fcm-token` on rotation (`onTokenRefresh`) or when
       // [FcmTokenRegistrar] sees a token != last saved (e.g. dashboard sync).
@@ -70,6 +74,7 @@ class FcmService {
           );
         }
         unawaited(_handleRemoteMessage(message));
+        unawaited(_localNotifications.showForegroundFromRemoteMessage(message));
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {

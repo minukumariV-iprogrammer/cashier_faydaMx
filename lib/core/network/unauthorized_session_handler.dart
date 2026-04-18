@@ -7,6 +7,7 @@ import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../navigation/app_routers.dart';
 import '../notifications/notification_inbox_store.dart';
 import '../push/in_app_payment_popup_queue.dart';
+import '../push/local_notification_service.dart';
 import '../router/app_router.dart';
 import '../session/session_timeout_service.dart';
 import 'season_holder.dart';
@@ -33,6 +34,7 @@ class UnauthorizedSessionHandler {
       await sl<TokenService>().clearTokens();
       await sl<PaymentPopupQueueStore>().clearAll();
       await sl<NotificationInboxStore>().clear();
+      await sl<LocalNotificationService>().cancelAll();
       await sl<AuthRepository>().logout();
 
       void goLogin() {

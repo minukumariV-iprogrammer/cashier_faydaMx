@@ -11,6 +11,7 @@ import '../core/push/fcm_service.dart';
 import '../core/push/fcm_token_registrar.dart';
 import '../core/push/in_app_payment_popup_coordinator.dart';
 import '../core/push/in_app_payment_popup_queue.dart';
+import '../core/push/local_notification_service.dart';
 import '../core/security/security_service.dart';
 import '../core/network/season_holder.dart';
 import '../core/network/tenant_holder.dart';
@@ -111,12 +112,16 @@ Future<void> initDependencies() async {
       sl<TokenHolder>(),
     ),
   );
+  sl.registerLazySingleton<LocalNotificationService>(
+    () => LocalNotificationService(sl<TokenHolder>()),
+  );
   sl.registerLazySingleton<FcmService>(
     () => FcmService(
       sl<FcmTokenRegistrar>(),
       sl<InAppPaymentPopupCoordinator>(),
       sl<TokenHolder>(),
       sl<NotificationInboxStore>(),
+      sl<LocalNotificationService>(),
     ),
   );
 

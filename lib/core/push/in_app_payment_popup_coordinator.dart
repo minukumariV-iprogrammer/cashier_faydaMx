@@ -31,6 +31,13 @@ class InAppPaymentPopupCoordinator {
     _hostAttached = false;
   }
 
+  /// Clears the "showing" slot without completing the queue item. Use when the
+  /// dialog could not be presented yet (e.g. no [Navigator] context) so [drainQueue]
+  /// can try again after the next frame or route change.
+  void releasePopupSlot() {
+    _isShowingPopup = false;
+  }
+
   Future<void> enqueueRemoteMessage(RemoteMessage message) async {
     await _queueStore.enqueue(PaymentPopupPayload.fromRemoteMessage(message));
     await drainQueue();

@@ -63,9 +63,9 @@ class _CashierAppState extends State<CashierApp> {
         ),
       );
       await initDependencies();
-      await sl<FcmService>().initialize();
       await sl<SecurityService>().initialize();
       if (mounted) _bootstrapReady.value = true;
+      await sl<FcmService>().initialize();
     } catch (e, st) {
       if (mounted) {
         _bootstrapError.value = e.toString();

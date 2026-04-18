@@ -87,7 +87,14 @@ class _InAppPaymentPopupHostState extends State<InAppPaymentPopupHost>
       overlayContext = AppRouter.rootNavigatorKey.currentContext;
     }
     if (overlayContext == null || !overlayContext.mounted) {
-      await _coordinator.onPopupDismissed(payload.id);
+      // Do not call [onPopupDismissed] here — that completes the queue item and
+      // marks it seen even though nothing was shown (common on iOS cold start
+      // before the root navigator is mounted).
+      _coordinator.releasePopupSlot();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(_coordinator.drainQueue());
+      });
       return;
     }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/store_asset_url.dart';
@@ -394,6 +395,7 @@ class _FaydaActiveDealsSectionState extends State<FaydaActiveDealsSection> {
                   if (i > 0) const SizedBox(width: _dealCardGap),
                   SizedBox(
                     width: _dealCardWidth,
+                    height: 255.h,
                     child: _DealCard(
                       item: deals[i],
                       selected: s.selectedPromotionId == deals[i].id,

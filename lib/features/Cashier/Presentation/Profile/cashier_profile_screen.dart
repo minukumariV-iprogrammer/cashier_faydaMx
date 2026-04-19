@@ -188,6 +188,32 @@ class _CashierProfileScreenState extends State<CashierProfileScreen> {
         ),
         centerTitle: false,
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 16.h),
+          child: SizedBox(
+            height: 48.h,
+            child: ElevatedButton(
+              onPressed: _onLogoutPressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFCDD2),
+                foregroundColor: const Color(0xFFC62828),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              child: Text(
+                'Logout',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: ValueListenableBuilder<CashierProfileSnapshot?>(
         valueListenable: _profile,
         builder: (context, p, _) {
@@ -299,28 +325,6 @@ class _CashierProfileScreenState extends State<CashierProfileScreen> {
                       ),
                     ),
                     SizedBox(height: 24.h),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48.h,
-                      child: ElevatedButton(
-                        onPressed: _onLogoutPressed,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFCDD2),
-                          foregroundColor: const Color(0xFFC62828),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                        ),
-                        child: Text(
-                          'Logout',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                      ),
-                    ),
                     SizedBox(height: 32.h),
                   ],
                 ),

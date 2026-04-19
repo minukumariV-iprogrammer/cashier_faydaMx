@@ -123,7 +123,7 @@ class _CashierForgotPasswordScreenState
                             .add(ForgotPasswordUsernameChanged(value));
                       },
                       decoration: InputDecoration(
-                        labelText: 'User Name',
+                       // labelText: 'User Name',
                         hintText: 'Enter User Name',
                         hintStyle: TextStyle(
                           fontSize: 14.sp,

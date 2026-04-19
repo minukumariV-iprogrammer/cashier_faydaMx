@@ -148,9 +148,21 @@ class _CreateFaydaBillPageState extends State<CreateFaydaBillPage> {
                         FaydaBillInputCard(
                           phoneController: _phoneController,
                           invoiceController: _invoiceController,
-                          onPhoneChanged: (v) => context
-                              .read<CreateFaydaBillBloc>()
-                              .add(CreateFaydaBillPhoneChanged(v)),
+                          invoiceEditable: state.phone.length >= 10,
+                          onPhoneChanged: (v) {
+                            final digits =
+                                v.replaceAll(RegExp(r'\D'), '');
+                            if (digits.length < 10 &&
+                                _invoiceController.text.isNotEmpty) {
+                              _invoiceController.clear();
+                            }
+                            context.read<CreateFaydaBillBloc>().add(
+                                  CreateFaydaBillPhoneChanged(v),
+                                );
+                            if (v.length == 10) {
+                              FocusScope.of(context).unfocus();
+                            }
+                          },
                           onInvoiceChanged: (v) => context
                               .read<CreateFaydaBillBloc>()
                               .add(CreateFaydaBillInvoiceChanged(v)),

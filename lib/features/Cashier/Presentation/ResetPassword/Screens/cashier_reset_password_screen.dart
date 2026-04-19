@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../core/navigation/app_routers.dart';
+import '../../../../../core/utils/password_policy.dart';
 import '../../../../../core/network/errors/exceptions.dart';
 import '../../../../../core/utils/toast_utils.dart';
 import '../../../../../di/injection.dart';
@@ -65,7 +66,15 @@ class _CashierResetPasswordScreenState extends State<CashierResetPasswordScreen>
       _otp.length == 6 &&
       _newPasswordController.text.trim().isNotEmpty &&
       _confirmPasswordController.text.trim().isNotEmpty &&
-      _passwordsMatch;
+      _passwordsMatch &&
+      PasswordPolicy.isValid(_newPasswordController.text.trim());
+
+  String? get _newPasswordErrorText {
+    final t = _newPasswordController.text;
+    if (t.isEmpty) return null;
+    if (PasswordPolicy.isValid(t)) return null;
+    return PasswordPolicy.requirementHint(t);
+  }
 
   @override
   void initState() {
@@ -165,9 +174,9 @@ class _CashierResetPasswordScreenState extends State<CashierResetPasswordScreen>
       ToastUtils.showErrorToast(message: 'Please enter valid 6-digit OTP');
       return;
     }
-    if (newPassword.length < 6) {
+    if (!PasswordPolicy.isValid(newPassword)) {
       ToastUtils.showErrorToast(
-        message: 'Password must be at least 6 characters',
+        message: 'Password does not meet the required format',
       );
       return;
     }
@@ -368,41 +377,68 @@ class _CashierResetPasswordScreenState extends State<CashierResetPasswordScreen>
                 ValueListenableBuilder<bool>(
                   valueListenable: _obscureNew,
                   builder: (context, obscure, _) {
-                    return TextField(
-                      controller: _newPasswordController,
-                      obscureText: obscure,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        labelText: 'New Password',
-                        hintText: 'New Password',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            obscure
-                                ? Icons.visibility_off_outlined
-                                : Icons.remove_red_eye_outlined,
-                            color: Colors.black54,
+                    final err = _newPasswordErrorText;
+                    final hasErr = err != null && err.isNotEmpty;
+                    final borderColor =
+                        hasErr ? Colors.red : Colors.black26;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          controller: _newPasswordController,
+                          obscureText: obscure,
+                          onChanged: (_) => setState(() {}),
+                          decoration: InputDecoration(
+                            labelText: 'New Password',
+                            hintText: 'Enter New Password',
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscure
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.remove_red_eye_outlined,
+                                color: Colors.black54,
+                              ),
+                              onPressed: () =>
+                                  _obscureNew.value = !_obscureNew.value,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.r),
+                              borderSide: BorderSide(color: borderColor),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.r),
+                              borderSide: BorderSide(
+                                color: borderColor,
+                                width: hasErr ? 1.5 : 1,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.r),
+                              borderSide: BorderSide(
+                                color: hasErr ? Colors.red : const Color(0xFF1C252E),
+                                width: hasErr ? 1.5 : 1,
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16.w,
+                              vertical: 14.h,
+                            ),
                           ),
-                          onPressed: () => _obscureNew.value = !_obscureNew.value,
                         ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                          borderSide: const BorderSide(color: Colors.black26),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                          borderSide: const BorderSide(color: Colors.black26),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                          borderSide: const BorderSide(color: Color(0xFF1C252E)),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 14.h,
-                        ),
-                      ),
+                        if (hasErr) ...[
+                          SizedBox(height: 6.h),
+                          Text(
+                            err,
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 12.sp,
+                              height: 1.35,
+                            ),
+                          ),
+                        ],
+                      ],
                     );
                   },
                 ),
@@ -416,7 +452,7 @@ class _CashierResetPasswordScreenState extends State<CashierResetPasswordScreen>
                       onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
                         labelText: 'Confirm Password',
-                        hintText: 'Confirm Password',
+                        hintText: 'Enter Confirm Password',
                         suffixIcon: IconButton(
                           icon: Icon(
                             obscure

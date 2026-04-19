@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/utils/toast_utils.dart';
+
 const _outerRadius = 8.0;
 const _iconBoxRadius = 8.0;
 const _border = Color(0xFFE0E0E0);
@@ -16,12 +18,17 @@ class FaydaBillInputCard extends StatelessWidget {
     required this.invoiceController,
     required this.onPhoneChanged,
     required this.onInvoiceChanged,
+    this.invoiceEditable = true,
   });
 
   final TextEditingController phoneController;
   final TextEditingController invoiceController;
   final ValueChanged<String> onPhoneChanged;
   final ValueChanged<String> onInvoiceChanged;
+
+  /// When false, invoice cannot be focused or edited (e.g. until mobile is 10 digits).
+  /// Uses [Focus] + [IgnorePointer] so the field keeps the same visual style as enabled.
+  final bool invoiceEditable;
 
   static InputDecoration _baseDecoration(String? hint) {
     return InputDecoration(
@@ -89,6 +96,7 @@ class FaydaBillInputCard extends StatelessWidget {
                         ),
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
+                          MobileNumberFormatter(),
                         ],
                         onChanged: onPhoneChanged,
                       ),
@@ -105,13 +113,20 @@ class FaydaBillInputCard extends StatelessWidget {
                     _IconBox(icon: Icons.receipt_long_outlined),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextField(
-                        controller: invoiceController,
-                        textInputAction: TextInputAction.done,
-                        style: textStyle,
-                        cursorColor: Colors.black54,
-                        decoration: _baseDecoration('Bill/ Invoice Number'),
-                        onChanged: onInvoiceChanged,
+                      child: Focus(
+                        canRequestFocus: invoiceEditable,
+                        child: IgnorePointer(
+                          ignoring: !invoiceEditable,
+                          child: TextField(
+                            controller: invoiceController,
+                            textInputAction: TextInputAction.done,
+                            style: textStyle,
+                            cursorColor: Colors.black54,
+                            decoration:
+                                _baseDecoration('Bill/ Invoice Number'),
+                            onChanged: onInvoiceChanged,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -146,5 +161,40 @@ class _IconBox extends StatelessWidget {
         color: const Color(0xFF757575),
       ),
     );
+  }
+}
+
+class MobileNumberFormatter extends TextInputFormatter {
+  DateTime? _lastToastTime;
+
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
+    final text = newValue.text;
+
+    if (text.isEmpty) {
+      return newValue;
+    }
+
+    final firstDigit = text[0];
+
+    if (!['6', '7', '8', '9'].contains(firstDigit)) {
+      final now = DateTime.now();
+
+      if (_lastToastTime == null ||
+          now.difference(_lastToastTime!) > const Duration(seconds: 1)) {
+        _lastToastTime = now;
+
+        ToastUtils.showErrorToast(
+          message: "Mobile number must start with 6, 7, 8, or 9",
+        );
+      }
+
+      return oldValue;
+    }
+
+    return newValue;
   }
 }

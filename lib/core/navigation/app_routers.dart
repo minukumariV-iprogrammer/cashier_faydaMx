@@ -11,4 +11,5 @@ abstract class AppRoutes {
   static const String cashierDashboard = '/dashboard';
   static const String createFaydaBill = '/create-faydabill';
   static const String notifications = '/notifications';
+  static const String cashierProfile = '/profile-details';
 }

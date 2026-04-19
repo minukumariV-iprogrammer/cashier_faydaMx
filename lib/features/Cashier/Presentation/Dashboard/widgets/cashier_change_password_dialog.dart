@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../core/network/errors/exceptions.dart';
+import '../../../../../core/utils/password_policy.dart';
 import '../../../../../core/utils/toast_utils.dart';
 import '../../../../../di/injection.dart';
 import '../../../data/datasource/cashier_auth_remote_ds.dart';
@@ -83,7 +83,15 @@ class _CashierChangePasswordDialogState
     if (_oldCtrl.text.trim().isEmpty) return false;
     if (_newCtrl.text.isEmpty) return false;
     if (_confirmCtrl.text.isEmpty) return false;
+    if (!PasswordPolicy.isValid(_newCtrl.text)) return false;
     return _passwordsMatch;
+  }
+
+  String? get _newPasswordErrorText {
+    final t = _newCtrl.text;
+    if (t.isEmpty) return null;
+    if (PasswordPolicy.isValid(t)) return null;
+    return PasswordPolicy.requirementHint(t);
   }
 
   Future<void> _submit() async {
@@ -162,6 +170,7 @@ class _CashierChangePasswordDialogState
                     onToggleObscure: () =>
                         _obscureNew.value = !_obscureNew.value,
                     onChanged: (_) => _tickForm(),
+                    errorText: _newPasswordErrorText,
                   ),
                   SizedBox(height: 12.h),
                   _PasswordField(
@@ -242,6 +251,7 @@ class _PasswordField extends StatelessWidget {
     required this.obscure,
     required this.onToggleObscure,
     required this.onChanged,
+    this.errorText,
   });
 
   final TextEditingController controller;
@@ -249,31 +259,58 @@ class _PasswordField extends StatelessWidget {
   final bool obscure;
   final VoidCallback onToggleObscure;
   final ValueChanged<String> onChanged;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      onChanged: onChanged,
-      style: TextStyle(fontSize: 14.sp),
-      decoration: InputDecoration(
-        labelText: label,
-        isDense: true,
-        contentPadding:
-            EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.r),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        suffixIcon: IconButton(
-          icon: Icon(
-            obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+    final hasError = errorText != null && errorText!.isNotEmpty;
+    final borderColor = hasError ? Colors.red : Colors.grey.shade300;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: controller,
+          obscureText: obscure,
+          onChanged: onChanged,
+          style: TextStyle(fontSize: 14.sp),
+          decoration: InputDecoration(
+            labelText: label,
+            isDense: true,
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.r),
+              borderSide: BorderSide(color: borderColor, width: hasError ? 1.5 : 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.r),
+              borderSide: BorderSide(
+                color: hasError ? Colors.red : const Color(0xFF1C252E),
+                width: hasError ? 1.5 : 1,
+              ),
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              ),
+              onPressed: onToggleObscure,
+            ),
           ),
-          onPressed: onToggleObscure,
         ),
-      ),
+        if (hasError) ...[
+          SizedBox(height: 6.h),
+          Text(
+            errorText!,
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 12.sp,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

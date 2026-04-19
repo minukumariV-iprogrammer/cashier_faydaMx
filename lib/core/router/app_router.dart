@@ -22,6 +22,7 @@ import '../../features/create_faydabill/presentation/bloc/create_faydabill_bloc.
 import '../../features/create_faydabill/presentation/bloc/create_faydabill_event.dart';
 import '../../features/create_faydabill/presentation/pages/create_faydabill_page.dart';
 import '../../features/Cashier/Presentation/Notifications/notifications_screen.dart';
+import '../../features/Cashier/Presentation/Profile/cashier_profile_screen.dart';
 import '../network/token_service.dart';
 import '../navigation/app_routers.dart';
 
@@ -133,6 +134,11 @@ class AppRouter {
           path: AppRoutes.notifications,
           name: 'notifications',
           builder: (_, __) => const NotificationsScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.cashierProfile,
+          name: 'profileDetails',
+          builder: (_, __) => const CashierProfileScreen(),
         ),
       ],
       redirect: (context, state) async {

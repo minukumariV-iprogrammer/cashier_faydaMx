@@ -152,6 +152,7 @@ class CreateFaydaBillBloc extends Bloc<CreateFaydaBillEvent, CreateFaydaBillStat
     if (digits.length < 10) {
       emit(state.copyWith(
         phone: digits,
+        invoiceNumber: '',
         clearCustomer: true,
         customerStatus: CreateFaydaBillCustomerStatus.idle,
         clearCustomerError: true,
@@ -634,17 +635,17 @@ class CreateFaydaBillBloc extends Bloc<CreateFaydaBillEvent, CreateFaydaBillStat
       final unit = _manualMrpPerUnit();
       if (unit == null || unit <= 0) {
         emit(state.copyWith(
-          userToastMessage: 'Please fill MRP before adding to cart',
+          userToastMessage: 'Please fill Amount before adding to cart',
         ));
         return;
       }
     }
-    if (!state.isProductDetailsFormComplete) {
-      emit(state.copyWith(
-        userToastMessage: 'Please fill MRP before adding to cart',
-      ));
-      return;
-    }
+    // if (!state.isProductDetailsFormComplete) {
+    //   emit(state.copyWith(
+    //     userToastMessage: 'Please ffffill MRP before adding to cart',
+    //   ));
+    //   return;
+    // }
 
     final subCat = _resolvedSubCategoryId();
     if (subCat == null) return;

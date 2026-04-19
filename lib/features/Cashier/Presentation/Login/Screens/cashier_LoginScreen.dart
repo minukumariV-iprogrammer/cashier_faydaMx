@@ -124,7 +124,7 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                         },
                         decoration: InputDecoration(
                           labelText: 'User Name',
-                          hintText: 'demo453',
+                          hintText: 'Enter UserName',
                           labelStyle: TextStyle(
                             color: Color(0xFF808080), // 👈 CSS grey-g-60
                           ),
@@ -172,7 +172,7 @@ class _cashierLoginScreenState extends State<cashierLoginScreen> {
                             },
                             decoration: InputDecoration(
                               labelText: 'Password',
-                              hintText: 'demo453',
+                              hintText: 'Enter Password',
                               labelStyle: TextStyle(
                                 color: Color(0xFF808080), // 👈 CSS grey-g-60
                               ),

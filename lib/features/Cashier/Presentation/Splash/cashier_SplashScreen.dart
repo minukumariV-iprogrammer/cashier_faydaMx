@@ -72,7 +72,7 @@ class _cashierSplashScreenState extends State<cashierSplashScreen> {
     final entity = state.data;
     if (entity != null) {
       final status = entity.statusRaw.trim().toUpperCase();
-      if (status == AppVersionStatus.maintenanceMode) {
+      if (status != AppVersionStatus.maintenanceMode) {
         _hasNavigated = true;
         context.go(AppRoutes.downtime);
         return;

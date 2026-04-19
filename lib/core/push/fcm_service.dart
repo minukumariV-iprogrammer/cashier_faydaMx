@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../firebase/firebase_bootstrap.dart';
-import '../network/token_holder.dart';
 import '../notifications/notification_inbox_store.dart';
 import 'in_app_payment_popup_coordinator.dart';
 import 'fcm_token_registrar.dart';
@@ -15,14 +15,12 @@ class FcmService {
   FcmService(
     this._registrar,
     this._popupCoordinator,
-    this._tokenHolder,
     this._inboxStore,
     this._localNotifications,
   );
 
   final FcmTokenRegistrar _registrar;
   final InAppPaymentPopupCoordinator _popupCoordinator;
-  final TokenHolder _tokenHolder;
   final NotificationInboxStore _inboxStore;
   final LocalNotificationService _localNotifications;
 
@@ -82,8 +80,16 @@ class FcmService {
           // ignore: avoid_print
           print('FCM opened app: ${message.data}');
         }
-        unawaited(_handleRemoteMessage(message));
+        // Defer so [InAppPaymentPopupHost] and GoRouter are fully ready (iOS cold start).
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            unawaited(_handleRemoteMessage(message));
+          });
+        });
       });
+
+      // Background isolate may have persisted inbox + payment queue while app was killed.
+      await _inboxStore.reloadFromStorage();
 
       final initial = await messaging.getInitialMessage();
       if (initial != null) {
@@ -91,11 +97,19 @@ class FcmService {
           // ignore: avoid_print
           print('FCM launched from terminated: ${initial.data}');
         }
-        await _handleRemoteMessage(initial);
+        // Handle after first frames: host must be attached; splash blocks drain until dashboard.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            unawaited(_handleRemoteMessage(initial));
+          });
+        });
       }
 
-      // Background isolate may have persisted notifications while app was killed.
-      await _inboxStore.reloadFromStorage();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          unawaited(_popupCoordinator.drainQueue());
+        });
+      });
     } catch (e, st) {
       debugPrint('FcmService init error: $e\n$st');
     }
@@ -132,11 +146,10 @@ class FcmService {
     }
   }
 
-  /// Inbox always updated when possible; payment popup only when logged in.
+  /// Inbox always updated; payment queue always enqueued. [InAppPaymentPopupCoordinator.drainQueue]
+  /// shows the popup only when a session token exists and the route allows (not splash).
   Future<void> _handleRemoteMessage(RemoteMessage message) async {
     await _inboxStore.addFromRemoteMessage(message);
-    final t = _tokenHolder.token;
-    if (t == null || t.isEmpty) return;
     await _popupCoordinator.enqueueRemoteMessage(message);
   }
 }

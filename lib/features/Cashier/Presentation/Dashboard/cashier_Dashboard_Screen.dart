@@ -8,6 +8,8 @@ import '../../../../core/navigation/dashboard_refresh_notifier.dart';
 import '../../../../core/network/errors/exceptions.dart';
 import '../../../../core/utils/toast_utils.dart';
 import '../../../../core/notifications/notification_inbox_store.dart';
+import '../../../../core/push/in_app_payment_popup_queue.dart';
+import '../../../../core/push/local_notification_service.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/network/season_holder.dart';
 import '../../../../core/network/tenant_holder.dart';
@@ -143,6 +145,8 @@ class _cashierDashBoardScreenState extends State<cashierDashBoardScreen>
     sl<SessionTimeoutService>().cancel();
     await sl<TokenService>().clearTokens();
     await sl<NotificationInboxStore>().clear();
+    await sl<PaymentPopupQueueStore>().clearAll();
+    await sl<LocalNotificationService>().cancelAll();
     sl<TenantHolder>().clear();
     sl<SeasonHolder>().clear();
     await sl<AuthRepository>().logout();

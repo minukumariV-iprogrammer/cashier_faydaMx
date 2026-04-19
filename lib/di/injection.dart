@@ -17,6 +17,7 @@ import '../core/network/season_holder.dart';
 import '../core/network/tenant_holder.dart';
 import '../core/network/token_holder.dart';
 import '../core/network/token_service.dart';
+import '../core/session/install_session_guard.dart';
 import '../core/session/session_timeout_service.dart';
 import '../features/Cashier/data/api/cashier_api_service.dart';
 import '../features/Cashier/di/cashier_di.dart';
@@ -39,6 +40,7 @@ Future<void> initDependencies() async {
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
   );
   sl.registerLazySingleton<FlutterSecureStorage>(() => storage);
+  await InstallSessionGuard.clearKeychainIfNoInstallMarker(storage);
   sl.registerLazySingleton<EncryptionService>(
     () => EncryptionService(),
   );
@@ -119,7 +121,6 @@ Future<void> initDependencies() async {
     () => FcmService(
       sl<FcmTokenRegistrar>(),
       sl<InAppPaymentPopupCoordinator>(),
-      sl<TokenHolder>(),
       sl<NotificationInboxStore>(),
       sl<LocalNotificationService>(),
     ),
